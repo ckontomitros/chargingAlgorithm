@@ -17,7 +17,7 @@ class ElectricVehicle:
         self.p_max = self.battery_capacity / self.duration  # Maximum power (kW)
         self.soc_min = self.battery_capacity * (1 - self.dod)  # Minimum SoC (kWh)
 
-    def charge_battery(self, excess_energy):
+    def charge(self, excess_energy):
         """Charge building battery using excess energy."""
         # Convert SOC from percentage to energy (kWh)
         soc_energy = self.soc * self.battery_capacity
@@ -33,7 +33,7 @@ class ElectricVehicle:
 
         return energy_charged
 
-    def discharge_battery(self, missing_energy):
+    def discharge(self, missing_energy):
         """Discharge building battery to cover missing energy, respecting DoD."""
         # Convert SOC from percentage to energy (kWh)
         soc_energy = self.soc * self.battery_capacity

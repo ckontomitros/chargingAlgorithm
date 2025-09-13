@@ -1,0 +1,25 @@
+# data/config.yaml
+panel_area: 50
+panel_efficiency: 0.2
+peak_solar_irradiance: 800
+building_battery_capacity: 50
+building_battery_efficiency: 0.9
+building_initial_soc: 0.5
+building_dod: 0.8
+ev_battery_capacity: 60
+ev_initial_soc: 0.3
+ev_dod: 0.8
+energy_per_km: 0.2
+max_charge_rate: 7
+duration: 5
+
+max_discharge_rate: 7
+usage_stats:
+  departure: 8
+  arrival: 18
+  daily_km: 50
+price_profile: [0.15, 0.12, 0.10, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.25, 0.20, 0.15, 0.15, 0.12, 0.10, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.25, 0.20, 0.15]
+desired_soc: 0.8
+target_time: 12
+arrival_time: 8
+consumption_file: ../data/consumption_profiles.csv
