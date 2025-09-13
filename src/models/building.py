@@ -33,7 +33,8 @@ class Building:
 
     def get_net_energy_demand(self, hour):
         """Calculate net energy demand (consumption - production)."""
-        return self.energy_consumption_profile[hour] - self.renewable_energy_profile[hour]
+        return self.energy_consumption_profile[hour % len(self.energy_consumption_profile)] - \
+            self.renewable_energy_profile[hour % len(self.renewable_energy_profile)]
 
     def charge_battery(self, excess_energy):
         """Charge building battery using excess energy."""
