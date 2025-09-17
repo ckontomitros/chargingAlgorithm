@@ -31,7 +31,8 @@ class ChargingSystem:
         # Sort available hours by effective cost (grid energy * price, after renewables)
         available_hours = list(range(self.arrival_time, self.target_time))
         hours_sorted = sorted(available_hours, key=lambda h: (
-            max(0, min(self.ev.max_charge_rate, energy_needed) - max(0, -self.building.get_net_energy_demand(h))) * self.grid.get_price(h)
+                max(0, min(self.ev.max_charge_rate, energy_needed) - max(0, -self.building.get_net_energy_demand(
+                    h))) * self.grid.get_price(h)
         ))
 
         # Check if current hour is among the cheapest hours needed to meet energy demand
@@ -54,7 +55,6 @@ class ChargingSystem:
         cost = energy_from_grid * self.grid.get_price(hour)  # Cost only for grid energy
         print(f"Charged {energy_charged:.2f} kWh at hour {hour}, Cost: {cost:.2f} €")
         return (True, cost)
-
 
     def rl_charge(self, hour, episodes=1000, learning_rate=0.1, discount_factor=0.9):
         """Reinforcement Learning algorithm: Decide to charge in the given hour."""
