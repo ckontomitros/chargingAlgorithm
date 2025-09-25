@@ -17,6 +17,7 @@ class Building:
         self.renewable_energy_profile = self.generate_renewable_profile()  # Generate PV profile
         self.p_max = self.battery_capacity / self.duration  # Maximum power (kW)
         self.soc_min = self.battery_capacity * (1 - self.dod)  # Minimum SoC (kWh)
+        self.v2g_energy = 0  # Track excess V2G energy not stored in battery (reset each hour)
 
     def generate_renewable_profile(self):
         """Generate renewable energy production profile from photovoltaics (kWh/hour)."""
@@ -32,43 +33,38 @@ class Building:
         return profile
 
     def get_net_energy_demand(self, hour):
-        """Calculate net energy demand (consumption - production)."""
-        return self.energy_consumption_profile[hour % len(self.energy_consumption_profile)] - \
-            self.renewable_energy_profile[hour % len(self.renewable_energy_profile)]
+        """Calculate net energy demand (consumption - production - V2G energy)."""
+        net_demand = (self.energy_consumption_profile[hour % len(self.energy_consumption_profile)] -
+                      self.renewable_energy_profile[hour % len(self.renewable_energy_profile)] -
+                      self.v2g_energy)
+        self.v2g_energy = 0  # Reset V2G energy after use
+        return net_demand
 
     def charge_battery(self, excess_energy):
         """Charge building battery using excess energy."""
-        # Convert SOC from percentage to energy (kWh)
         soc_energy = self.soc * self.battery_capacity
-
-        # Calculate maximum charge power
         p_ch_t = min(self.p_max, self.battery_capacity - soc_energy)
-
-        # Calculate actual energy to charge (limited by available excess energy)
         energy_charged = min(p_ch_t, excess_energy)
-
-        # Update SOC (convert energy back to percentage)
         self.soc = (soc_energy + energy_charged) / self.battery_capacity
-
         return energy_charged
 
     def discharge_battery(self, missing_energy):
         """Discharge building battery to cover missing energy, respecting DoD."""
-        # Convert SOC from percentage to energy (kWh)
         soc_energy = self.soc * self.battery_capacity
-
-        # Calculate maximum discharge power (respecting minimum SOC)
         available_energy = soc_energy - self.soc_min
         p_dis_t = min(self.p_max, available_energy * self.battery_efficiency)
-
-        # Calculate actual energy to discharge (limited by missing energy)
-        # Note: p_dis_t is power, so we need to consider it as energy for 1-hour timestep
         energy_discharged_after_losses = min(p_dis_t, missing_energy)
-
-        # Calculate energy actually taken from battery (before efficiency losses)
         energy_from_battery = energy_discharged_after_losses / self.battery_efficiency
-
-        # Update SOC
         self.soc = (soc_energy - energy_from_battery) / self.battery_capacity
-
         return energy_discharged_after_losses
+
+    def receive_v2g_energy(self, energy):
+        """Receive energy discharged from EV, store in battery or reduce grid demand."""
+        # Try to store in building's battery
+        soc_energy = self.soc * self.battery_capacity
+        p_ch_t = min(self.p_max, self.battery_capacity - soc_energy)
+        energy_to_battery = min(p_ch_t, energy * self.battery_efficiency)
+        self.soc = (soc_energy + energy_to_battery) / self.battery_capacity
+        # Remaining energy reduces grid demand
+        self.v2g_energy = (energy - energy_to_battery / self.battery_efficiency)
+        return energy
