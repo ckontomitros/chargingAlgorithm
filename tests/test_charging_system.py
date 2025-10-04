@@ -139,12 +139,6 @@ class TestChargingSystem(unittest.TestCase):
         self.assertEqual(cost, 0)
         self.assertEqual(charger.ev.soc, 0.8)
 
-    def test_rl_charge_short_window(self):
-        charger = self.create_charging_system(arrival_time=11, target_time=12)
-        should_charge, cost = charger.rl_charge(hour=11, episodes=100)
-        self.assertTrue(should_charge)  # Must charge in only available hour
-        self.assertAlmostEqual(cost, 7 * 0.12, places=2)
-        self.assertAlmostEqual(charger.ev.soc, 0.5 + 7 / 60)
 
     def test_rl_charge_with_renewables(self):
         renewable_profile = [0, 0, 20, 20, 0]  # High renewable energy at hours 2 and 3

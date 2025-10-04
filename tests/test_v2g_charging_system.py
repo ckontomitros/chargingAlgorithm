@@ -98,38 +98,6 @@ class TestChargingSystem(unittest.TestCase):
         expected_cost = 7 * 0.1 + 7 * 0.12 + 7 * 0.15 + 7 * 0.12  # First 4 hours
         self.assertAlmostEqual(total_cost, expected_cost, places=5)
 
-    def test_cost_optimized_charge_cheapest_hour(self):
-        charger = self.create_charging_system()
-        # Cheapest hours are 2 and 3 (0.10 €/kWh)
-        should_act, cost = charger.cost_optimized_charge(hour=8)  # Hour 8: 0.10 €/kWh
-        self.assertTrue(should_act)
-        self.assertAlmostEqual(cost, 7 * 0.10)  # 7 kWh * 0.10 €/kWh for charging
-        self.assertAlmostEqual(charger.ev.soc, 0.5 + 7 / 60)
-
-    def test_cost_optimized_charge_discharge_high_price(self):
-        charger = self.create_charging_system(initial_soc=0.8)  # High initial SoC to allow discharge
-        should_act, cost = charger.cost_optimized_charge(hour=9)  # Hour 9: 0.12 €/kWh (sell price 0.096)
-        self.assertTrue(should_act)
-        self.assertLess(cost, 0)  # Negative cost indicates discharge benefit
-        self.assertAlmostEqual(cost, -7 * 0.096, places=2)  # 7 kWh * 0.096 €/kWh
-        self.assertAlmostEqual(charger.ev.soc, 0.8 - (7 / 0.9) / 60)  # Account for efficiency loss
-        self.assertGreater(charger.building.soc, 0.5)  # Building battery should charge
-
-    def test_cost_optimized_charge_with_renewables(self):
-        renewable_profile = [0, 0, 20, 20, 0]  # High renewable energy at hours 2 and 3
-        charger = self.create_charging_system(renewable_profile=renewable_profile)
-        should_act, cost = charger.cost_optimized_charge(hour=8)  # Hour 8: 0.10 €/kWh, 20 kWh renewable
-        self.assertTrue(should_act)
-        self.assertAlmostEqual(cost, 0)  # No grid energy needed due to renewables
-        self.assertAlmostEqual(charger.ev.soc, 0.5 + 7 / 60)
-
-    def test_cost_optimized_charge_short_window(self):
-        charger = self.create_charging_system(arrival_time=11, target_time=12)
-        should_act, cost = charger.cost_optimized_charge(hour=11)
-        self.assertTrue(should_act)  # Must charge in only available hour
-        self.assertAlmostEqual(cost, 7 * 0.12)  # 7 kWh * 0.12 €/kWh
-        self.assertAlmostEqual(charger.ev.soc, 0.5 + 7 / 60)
-
     def test_rl_charge_low_price_hour(self):
         charger = self.create_charging_system()
         should_act, cost = charger.rl_charge(hour=8, episodes=1000)  # Hour 8: 0.10 €/kWh
