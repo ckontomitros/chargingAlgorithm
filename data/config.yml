@@ -20,6 +20,6 @@ usage_stats:
   daily_km: 50
 price_profile: [0.15, 0.12, 0.10, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.25, 0.20, 0.15, 0.15, 0.12, 0.10, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.25, 0.20, 0.15]
 desired_soc: 0.8
-target_time: 12
-arrival_time: 8
+target_time: 22
+arrival_time: 7
 consumption_file: ../data/consumption_profiles.csv

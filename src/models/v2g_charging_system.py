@@ -87,7 +87,7 @@ class V2GChargingSystem:
 
         return max_rew, choices
 
-    def rl_charge(self, hour, episodes=1000, learning_rate=0.1, discount_factor=0.9):
+    def rl_charge(self, hour, episodes=10000, learning_rate=0.1, discount_factor=1):
         """Reinforcement Learning algorithm: Decide to charge or discharge in the given hour."""
         if hour < self.arrival_time:
             return False, 0
