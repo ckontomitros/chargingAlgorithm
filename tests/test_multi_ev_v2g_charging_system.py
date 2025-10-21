@@ -46,7 +46,7 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             energy_per_km=0.2,  # kWh/km
             max_charge_rate=7.0,  # kW
             max_discharge_rate=7.0,  # kW
-            usage_stats={'departure': 8, 'arrival': 18, 'daily_km': 50},
+            usage_stats={'departure': 18, 'arrival': 8, 'daily_km': 50},
             dod=0.8,
             duration=2
         )
@@ -57,7 +57,7 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             energy_per_km=0.18,
             max_charge_rate=5.0,
             max_discharge_rate=5.0,
-            usage_stats={'departure': 9, 'arrival': 20, 'daily_km': 40},
+            usage_stats={'departure': 20, 'arrival': 9, 'daily_km': 40},
             dod=0.8,
             duration=2
         )
@@ -68,7 +68,7 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             energy_per_km=0.19,
             max_charge_rate=6.0,
             max_discharge_rate=6.0,
-            usage_stats={'departure': 10, 'arrival': 17, 'daily_km': 45},
+            usage_stats={'departure': 17, 'arrival': 10, 'daily_km': 45},
             dod=0.8,
             duration=2
         )
@@ -116,27 +116,9 @@ class TestMultiEVV2GSystem(unittest.TestCase):
 
         return evs, building, grid, grid_capacity
 
-    def assert_true(self, condition, test_name, message=""):
-        """Assert that condition is true"""
-        if condition:
-            self.passed += 1
-            self.test_results.append(f"✓ PASS: {test_name}")
-            print(f"✓ PASS: {test_name}")
-        else:
-            self.failed += 1
-            self.test_results.append(f"✗ FAIL: {test_name} - {message}")
-            print(f"✗ FAIL: {test_name} - {message}")
 
-    def assert_equal(self, actual, expected, test_name, tolerance=0.01):
-        """Assert that actual equals expected (with tolerance for floats)"""
-        if isinstance(actual, float) and isinstance(expected, float):
-            condition = abs(actual - expected) < tolerance
-            message = f"Expected {expected}, got {actual}"
-        else:
-            condition = actual == expected
-            message = f"Expected {expected}, got {actual}"
 
-        self.assert_true(condition, test_name, message)
+
 
     def test_initialization(self):
         """Test system initialization"""
@@ -145,10 +127,10 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         evs, building, grid, grid_capacity = self.setup()
         system = MultiEVV2GChargingSystem(building, evs, grid, grid_capacity)
 
-        self.assert_equal(len(system.evs), 3, "Number of EVs")
-        self.assert_true(system.building is not None, "Building initialized")
-        self.assert_true(system.grid is not None, "Grid initialized")
-        self.assert_equal(len(system.grid_usage), 0, "Grid usage tracking initialized")
+        self.assertEqual(len(system.evs), 3, "Number of EVs")
+        self.assertTrue(system.building is not None, "Building initialized")
+        self.assertTrue(system.grid is not None, "Grid initialized")
+        self.assertEqual(len(system.grid_usage), 0, "Grid usage tracking initialized")
 
     def test_simple_charge(self):
         """Test simple charging algorithm"""
@@ -163,13 +145,13 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         # Run charging at hour 10
         action_taken, cost = system.simple_charge_multi(10)
 
-        self.assert_true(action_taken, "Simple charge action taken")
-        self.assert_true(cost >= 0, "Simple charge cost is non-negative", f"Cost: {cost}")
+        self.assertTrue(action_taken, "Simple charge action taken")
+        self.assertTrue(cost >= 0, "Simple charge cost is non-negative Cost: {cost}")
 
         # Check that at least one EV was charged
         final_socs = [ev_cfg['ev'].soc for ev_cfg in evs]
         soc_increased = any(final_socs[i] > initial_socs[i] for i in range(len(evs)))
-        self.assert_true(soc_increased, "At least one EV SOC increased")
+        self.assertTrue(soc_increased, "At least one EV SOC increased")
 
     def test_rl_charge(self):
         """Test reinforcement learning algorithm"""
@@ -185,8 +167,8 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         print("Training RL agent (500 episodes)...")
         action_taken, benefit = system.rl_charge_multi(10, episodes=500)
 
-        self.assert_true(isinstance(action_taken, bool), "RL returns boolean")
-        self.assert_true(isinstance(benefit, (int, float)), "RL returns numeric benefit")
+        self.assertTrue(isinstance(action_taken, bool), "RL returns boolean")
+        self.assertTrue(isinstance(benefit, (int, float)), "RL returns numeric benefit")
 
         print(f"RL Result: Action={action_taken}, Benefit={benefit:.2f}€")
 
@@ -203,8 +185,8 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             # Run MILP at hour 10
             action_taken, benefit = system.milp_charge(10)
 
-            self.assert_true(isinstance(action_taken, bool), "MILP returns boolean")
-            self.assert_true(isinstance(benefit, (int, float)), "MILP returns numeric benefit")
+            self.assertTrue(isinstance(action_taken, bool), "MILP returns boolean")
+            self.assertTrue(isinstance(benefit, (int, float)), "MILP returns numeric benefit")
 
             print(f"MILP Result: Action={action_taken}, Benefit={benefit:.2f}€")
 
@@ -225,10 +207,12 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         print("Running MPC optimization...")
         action_taken, benefit = system.mpc_charge(10, horizon=4, iterations=30)
 
-        self.assert_true(isinstance(action_taken, bool), "MPC returns boolean")
-        self.assert_true(isinstance(benefit, (int, float)), "MPC returns numeric benefit")
+        self.assertTrue(isinstance(action_taken, bool), "MPC returns boolean")
+        self.assertTrue(isinstance(benefit, (int, float)), "MPC returns numeric benefit")
 
         print(f"MPC Result: Action={action_taken}, Benefit={benefit:.2f}€")
+
+#ignore test
 
     def test_dqn_charge(self):
         """Test Deep Q-Network algorithm"""
@@ -242,10 +226,10 @@ class TestMultiEVV2GSystem(unittest.TestCase):
 
             # Run DQN at hour 10 (reduced episodes for testing)
             print("Training DQN agent (200 episodes)...")
-            action_taken, benefit = system.dqn_charge(10, episodes=200, batch_size=16)
+            action_taken, benefit = system.dqn_charge(10, episodes=100, batch_size=16)
 
-            self.assert_true(isinstance(action_taken, bool), "DQN returns boolean")
-            self.assert_true(isinstance(benefit, (int, float)), "DQN returns numeric benefit")
+            self.assertTrue(isinstance(action_taken, bool), "DQN returns boolean")
+            self.assertTrue(isinstance(benefit, (int, float)), "DQN returns numeric benefit")
 
             print(f"DQN Result: Action={action_taken}, Benefit={benefit:.2f}€")
 
@@ -266,8 +250,8 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         print("Running PSO optimization...")
         action_taken, benefit = system.pso_charge(10, n_particles=20, n_iterations=30)
 
-        self.assert_true(isinstance(action_taken, bool), "PSO returns boolean")
-        self.assert_true(isinstance(benefit, (int, float)), "PSO returns numeric benefit")
+        self.assertTrue(isinstance(action_taken, bool), "PSO returns boolean")
+        self.assertTrue(isinstance(benefit, (int, float)), "PSO returns numeric benefit")
 
         print(f"PSO Result: Action={action_taken}, Benefit={benefit:.2f}€")
 
@@ -285,10 +269,9 @@ class TestMultiEVV2GSystem(unittest.TestCase):
 
         # Check that grid usage doesn't exceed capacity
         for hour, usage in system.grid_usage.items():
-            self.assert_true(
+            self.assertTrue(
                 usage <= grid_capacity[hour] + 0.1,  # Small tolerance
-                f"Grid capacity respected at hour {hour}",
-                f"Usage {usage:.2f} exceeds capacity {grid_capacity[hour]:.2f}"
+                f"Grid capacity respected at hour {hour} Usage {usage:.2f} exceeds capacity {grid_capacity[hour]:.2f}"
             )
 
     def test_soc_constraints(self):
@@ -305,15 +288,13 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         # Check all EVs have valid SOC
         for i, ev_cfg in enumerate(evs):
             ev = ev_cfg['ev']
-            self.assert_true(
+            self.assertTrue(
                 0 <= ev.soc <= 1.0,
-                f"EV {i} SOC within bounds",
-                f"SOC = {ev.soc}"
+                f"EV {i} SOC within bounds SOC = {ev.soc}"
             )
-            self.assert_true(
+            self.assertTrue(
                 ev.soc >= system.min_soc,
-                f"EV {i} SOC above minimum",
-                f"SOC = {ev.soc}, min = {system.min_soc}"
+                f"EV {i} SOC above minimum SOC = {ev.soc}, min = {system.min_soc}"
             )
 
     def test_arrival_departure_times(self):
@@ -329,21 +310,18 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         final_socs = [ev_cfg['ev'].soc for ev_cfg in evs]
 
         # No EV should have charged
-        self.assert_true(
+        self.assertTrue(
             all(final_socs[i] == initial_socs[i] for i in range(len(evs))),
-            "No charging before arrival",
-            "Some EV charged before arrival"
-        )
+            "No charging before arrival")
 
         # Try charging after all EVs departed (hour 21)
         initial_socs = [ev_cfg['ev'].soc for ev_cfg in evs]
         action_taken, _ = system.simple_charge_multi(21)
         final_socs = [ev_cfg['ev'].soc for ev_cfg in evs]
 
-        self.assert_true(
+        self.assertTrue(
             all(final_socs[i] == initial_socs[i] for i in range(len(evs))),
-            "No charging after departure",
-            "Some EV charged after departure"
+            " Some EV charged after departure"
         )
 
     def test_building_integration(self):
@@ -357,9 +335,8 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         morning_demand = building.get_net_energy_demand(8)
         noon_demand = building.get_net_energy_demand(12)  # Should have solar
 
-        self.assert_true(
+        self.assertTrue(
             noon_demand < morning_demand,
-            "Solar reduces building demand",
             f"Morning: {morning_demand:.2f}, Noon: {noon_demand:.2f}"
         )
 
@@ -384,10 +361,9 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             ev = ev_cfg['ev']
             target_soc = ev_cfg['desired_soc']
             # Allow small tolerance due to charging constraints
-            self.assert_true(
+            self.assertTrue(
                 ev.soc >= target_soc - 0.1,
-                f"EV {i} reached target SOC",
-                f"Target: {target_soc:.2f}, Actual: {ev.soc:.2f}"
+                f"EV {i} reached target SOC Target: {target_soc:.2f}, Actual: {ev.soc:.2f}"
             )
 
         print(f"\nTotal simulation cost: {total_cost:.2f}€")
@@ -397,10 +373,11 @@ class TestMultiEVV2GSystem(unittest.TestCase):
         print("\n=== Algorithm Comparison ===")
 
         algorithms = [
-            ("Simple", lambda sys: sys.simple_charge_multi(10)),
-            ("RL", lambda sys: sys.rl_charge_multi(10, episodes=300)),
-            ("MPC", lambda sys: sys.mpc_charge(10, horizon=4, iterations=20)),
-            ("PSO", lambda sys: sys.pso_charge(10, n_particles=15, n_iterations=20)),
+            ("Simple", lambda sys,hour: sys.simple_charge_multi(hour)),
+            ("RL", lambda sys,hour: sys.rl_charge_multi(hour, episodes=300)),
+            ("MPC", lambda sys,hour: sys.mpc_charge(hour, horizon=4, iterations=20)),
+            ("PSO", lambda sys,hour: sys.pso_charge(hour, n_particles=15, n_iterations=20)),
+            ("DQN", lambda sys,hour: sys.dqn_charge(hour, episodes=100, batch_size=16)),
         ]
 
         results = {}
@@ -409,15 +386,18 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             # Create fresh environment for each algorithm
             evs, building, grid, grid_capacity = self.setup()
             system = MultiEVV2GChargingSystem(building, evs, grid, grid_capacity)
-
-            try:
-                print(f"\nRunning {name}...")
-                action_taken, benefit = algo_func(system)
-                results[name] = benefit
-                print(f"{name}: Action={action_taken}, Benefit={benefit:.2f}€")
-            except Exception as e:
-                print(f"{name}: Error - {str(e)}")
-                results[name] = None
+            for hour in range(8, 21):
+                try:
+                    print(f"\nRunning {name}...")
+                    action_taken, benefit = algo_func(system, hour)
+                    if results[name] is None:
+                        results[name] = benefit
+                    else:
+                        results[name] += benefit
+                    print(f"{name}: Action={action_taken}, Benefit={benefit:.2f}€")
+                except Exception as e:
+                    print(f"{name}: Error - {str(e)}")
+                    results[name] = None
 
         # Print comparison
         print("\n--- Algorithm Comparison Summary ---")

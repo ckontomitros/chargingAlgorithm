@@ -1,7 +1,6 @@
 import numpy as np
 from collections import defaultdict
 
-
 class MultiEVV2GChargingSystem:
     def __init__(self, building, evs, grid, grid_capacity_per_hour, min_soc=0.2):
         """
