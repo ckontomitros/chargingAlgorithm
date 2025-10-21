@@ -377,7 +377,7 @@ class TestMultiEVV2GSystem(unittest.TestCase):
             ("RL", lambda sys,hour: sys.rl_charge_multi(hour, episodes=300)),
             ("MPC", lambda sys,hour: sys.mpc_charge(hour, horizon=4, iterations=20)),
             ("PSO", lambda sys,hour: sys.pso_charge(hour, n_particles=15, n_iterations=20)),
-            ("DQN", lambda sys,hour: sys.dqn_charge(hour, episodes=100, batch_size=16)),
+            ('MILP', lambda sys,hour: sys.milp_charge(hour))
         ]
 
         results = {}

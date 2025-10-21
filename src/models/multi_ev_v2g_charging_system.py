@@ -56,10 +56,10 @@ class MultiEVV2GChargingSystem:
                 charged_evs.append(i)
                 print(f"EV {i}: Charged {energy:.2f} kWh at hour {hour}, Cost: {cost:.2f} €")
 
-        return len(charged_evs) > 0, total_cost
+        return len(charged_evs) > 0, total_cost * -1  # Return negative cost as benefit
 
     def rl_charge_multi(self, hour, episodes=2000, learning_rate=0.1,
-                        discount_factor=0.95, epsilon=0.15):
+                        discount_factor=1, epsilon=0.15):
         """
         Multi-agent RL algorithm for multiple EVs with grid constraints.
         Uses centralized learning with decentralized execution.
