@@ -1,10 +1,10 @@
 import numpy as np
 from collections import defaultdict
 
-class MultiEVV2GChargingSystem:
+class MultiEVChargingSystem:
     def __init__(self, building, evs, grid, grid_capacity_per_hour, min_soc=0.2):
         """
-        Initialize multi-EV V2G charging system.
+        Initialize multi-EV charging system (charge-only, no V2G).
 
         Args:
             building: Building object
@@ -59,9 +59,9 @@ class MultiEVV2GChargingSystem:
         return len(charged_evs) > 0, total_cost * -1  # Return negative cost as benefit
 
     def rl_charge_multi(self, hour, episodes=2000, learning_rate=0.1,
-                        discount_factor=1, epsilon=0.15):
+                        discount_factor=0.95, epsilon=0.15):
         """
-        Multi-agent RL algorithm for multiple EVs with grid constraints.
+        Multi-agent RL algorithm for multiple EVs with grid constraints (charge-only).
         Uses centralized learning with decentralized execution.
         """
         if not any(ev_cfg['arrival_time'] <= hour < ev_cfg['target_time']
@@ -70,10 +70,9 @@ class MultiEVV2GChargingSystem:
 
         # Discretize SoC states
         soc_bins = np.arange(self.min_soc, 1.01, 0.1)
-        actions = ['charge', 'discharge', 'standby']
+        actions = ['charge', 'standby']  # Only charging and standby
 
         # Create state space: (ev_id, soc_bin, hour, grid_available)
-        # Simplified: grid_available is discretized into bins
         grid_bins = [0, 0.25, 0.5, 0.75, 1.0]  # Fraction of capacity available
 
         # Initialize Q-table as nested dictionary for sparse representation
@@ -110,7 +109,7 @@ class MultiEVV2GChargingSystem:
 
                     # Discretize state
                     soc_bin = min(len(soc_bins) - 1,
-                                  int((ev_state['soc'] - self.min_soc) / 0.1))
+                                  max(0, int((ev_state['soc'] - self.min_soc) / 0.1)))
                     grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
                         if available_capacity > 0 else 0
 
@@ -150,17 +149,6 @@ class MultiEVV2GChargingSystem:
                             episode_grid_usage[h] += energy_from_grid
                             remaining_capacity -= energy_from_grid
 
-                    elif action == 'discharge' and ev_state['soc'] > self.min_soc:
-                        # Discharge energy
-                        max_energy = min(
-                            ev_state['max_rate'],
-                            (ev_state['soc'] - self.min_soc) * ev_state['battery_cap']
-                        )
-
-                        if max_energy > 0:
-                            reward = max_energy * self.grid.get_sell_price(h)
-                            ev_state['soc'] -= max_energy / ev_state['battery_cap']
-
                     # Penalties and bonuses
                     if ev_state['soc'] < self.min_soc:
                         reward -= 1000
@@ -178,7 +166,7 @@ class MultiEVV2GChargingSystem:
 
                     # Update Q-value
                     next_soc_bin = min(len(soc_bins) - 1,
-                                       int((ev_state['soc'] - self.min_soc) / 0.1))
+                                       max(0, int((ev_state['soc'] - self.min_soc) / 0.1)))
                     next_grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
                         if available_capacity > 0 else 0
                     next_state = (ev_id, next_soc_bin, min(h + 1, max_hour - 1), next_grid_bin)
@@ -205,7 +193,7 @@ class MultiEVV2GChargingSystem:
 
             # Get current state
             soc_bin = min(len(soc_bins) - 1,
-                          int((ev.soc - self.min_soc) / 0.1))
+                          max(0, int((ev.soc - self.min_soc) / 0.1)))
             grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
                 if available_capacity > 0 else 0
             state = (ev_id, soc_bin, hour, grid_bin)
@@ -238,21 +226,6 @@ class MultiEVV2GChargingSystem:
                     actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh "
                                          f"({energy_from_grid:.2f} from grid), Cost: {cost:.2f} €")
 
-            elif action == 'discharge' and ev.soc > self.min_soc:
-                max_energy = min(
-                    ev.max_charge_rate,
-                    (ev.soc - self.min_soc) * ev.battery_capacity
-                )
-
-                if max_energy > 0:
-                    energy = ev.discharge(max_energy)
-                    self.building.receive_v2g_energy(energy)
-                    benefit = energy * self.grid.get_sell_price(hour)
-                    total_benefit += benefit
-
-                    actions_taken.append(f"EV {ev_id}: Discharged {energy:.2f} kWh, "
-                                         f"Benefit: {benefit:.2f} €")
-
         # Print actions
         for action_msg in actions_taken:
             print(action_msg)
@@ -261,7 +234,7 @@ class MultiEVV2GChargingSystem:
 
     def milp_charge(self, current_hour):
         """
-        Mixed Integer Linear Programming approach for optimal charging schedule.
+        Mixed Integer Linear Programming approach for optimal charging schedule (charge-only).
         Requires pulp library: pip install pulp
         """
         try:
@@ -276,11 +249,10 @@ class MultiEVV2GChargingSystem:
         hours = range(min_hour, max_hour)
 
         # Create optimization problem
-        prob = LpProblem("Multi_EV_V2G_Optimization", LpMinimize)
+        prob = LpProblem("Multi_EV_Charging_Optimization", LpMinimize)
 
-        # Decision variables
+        # Decision variables (only charging, no discharge)
         charge = {}  # charge[ev_id, h] = energy charged at hour h
-        discharge = {}  # discharge[ev_id, h] = energy discharged at hour h
         soc = {}  # soc[ev_id, h] = state of charge at hour h
         grid_energy = {}  # grid_energy[ev_id, h] = energy from grid
 
@@ -288,18 +260,15 @@ class MultiEVV2GChargingSystem:
             ev = ev_cfg['ev']
             for h in hours:
                 charge[ev_id, h] = LpVariable(f"charge_{ev_id}_{h}", 0, ev.max_charge_rate)
-                discharge[ev_id, h] = LpVariable(f"discharge_{ev_id}_{h}", 0, ev.max_charge_rate)
                 soc[ev_id, h] = LpVariable(f"soc_{ev_id}_{h}", self.min_soc, 1.0)
                 grid_energy[ev_id, h] = LpVariable(f"grid_{ev_id}_{h}", 0, ev.max_charge_rate)
 
-        # Objective: Minimize total cost (grid purchases - discharge sales)
+        # Objective: Minimize total cost (only grid purchases)
         total_cost = []
         for ev_id, ev_cfg in enumerate(self.evs):
             for h in hours:
                 # Cost of grid energy
                 total_cost.append(grid_energy[ev_id, h] * self.grid.get_price(h))
-                # Revenue from discharge
-                total_cost.append(-discharge[ev_id, h] * self.grid.get_sell_price(h))
 
         prob += lpSum(total_cost)
 
@@ -311,20 +280,17 @@ class MultiEVV2GChargingSystem:
             desired_soc = ev_cfg['desired_soc']
 
             for h in hours:
-                # No charging/discharging before arrival or after target
+                # No charging before arrival or after target
                 if h < arrival or h >= target:
                     prob += charge[ev_id, h] == 0
-                    prob += discharge[ev_id, h] == 0
 
                 # SoC dynamics
                 if h == arrival:
                     # Initial SoC
-                    prob += soc[ev_id, h] == ev.soc + \
-                            (charge[ev_id, h] - discharge[ev_id, h]) / ev.battery_capacity
+                    prob += soc[ev_id, h] == ev.soc + charge[ev_id, h] / ev.battery_capacity
                 elif h > arrival and h < target:
                     # SoC evolution
-                    prob += soc[ev_id, h] == soc[ev_id, h - 1] + \
-                            (charge[ev_id, h] - discharge[ev_id, h]) / ev.battery_capacity
+                    prob += soc[ev_id, h] == soc[ev_id, h - 1] + charge[ev_id, h] / ev.battery_capacity
 
                 # Grid energy constraint (charge from building first)
                 building_energy = max(0, -self.building.get_net_energy_demand(h))
@@ -358,7 +324,6 @@ class MultiEVV2GChargingSystem:
                 continue
 
             charge_amount = value(charge[ev_id, current_hour])
-            discharge_amount = value(discharge[ev_id, current_hour])
 
             if charge_amount and charge_amount > 0.01:
                 energy = ev.charge(charge_amount)
@@ -369,13 +334,6 @@ class MultiEVV2GChargingSystem:
                 self.grid_usage[current_hour] += energy_from_grid
                 actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh, Cost: {cost:.2f} €")
 
-            elif discharge_amount and discharge_amount > 0.01:
-                energy = ev.discharge(discharge_amount)
-                self.building.receive_v2g_energy(energy)
-                benefit = energy * self.grid.get_sell_price(current_hour)
-                total_benefit += benefit
-                actions_taken.append(f"EV {ev_id}: Discharged {energy:.2f} kWh, Benefit: {benefit:.2f} €")
-
         for action in actions_taken:
             print(action)
 
@@ -383,7 +341,7 @@ class MultiEVV2GChargingSystem:
 
     def mpc_charge(self, current_hour, horizon=6, iterations=50):
         """
-        Model Predictive Control for multi-EV charging.
+        Model Predictive Control for multi-EV charging (charge-only).
         Optimizes over a receding horizon using gradient descent.
         """
         min_hour = min(ev_cfg['arrival_time'] for ev_cfg in self.evs)
@@ -396,19 +354,17 @@ class MultiEVV2GChargingSystem:
         horizon_end = min(current_hour + horizon, max_hour)
         prediction_hours = range(current_hour, horizon_end)
 
-        # Init ialize control variables (charge/discharge rates)
+        # Initialize control variables (only charge rates, no discharge)
         n_evs = len(self.evs)
         n_hours = len(prediction_hours)
 
-        # Control vector: [charge_rates, discharge_rates] for all EVs and hours
-        controls = np.random.rand(n_evs * n_hours * 2) * 0.5
+        # Control vector: charge_rates for all EVs and hours
+        controls = np.random.rand(n_evs * n_hours) * 0.5
 
         best_controls = controls.copy()
         best_cost = float('inf')
 
         # Gradient descent optimization
-        learning_rate = 0.01
-
         for iteration in range(iterations):
             # Evaluate cost
             total_cost = 0
@@ -428,14 +384,8 @@ class MultiEVV2GChargingSystem:
 
                     ev = ev_cfg['ev']
                     charge_idx = ev_id * n_hours + t_idx
-                    discharge_idx = n_evs * n_hours + ev_id * n_hours + t_idx
 
                     charge_rate = np.clip(controls[charge_idx], 0, ev.max_charge_rate)
-                    discharge_rate = np.clip(controls[discharge_idx], 0, ev.max_charge_rate)
-
-                    # Can't charge and discharge simultaneously
-                    if charge_rate > 0.1:
-                        discharge_rate = 0
 
                     # Charging
                     if charge_rate > 0:
@@ -446,13 +396,6 @@ class MultiEVV2GChargingSystem:
                         total_cost += energy_from_grid * self.grid.get_price(h)
                         ev_socs[ev_id] += energy / ev.battery_capacity
                         hour_grid_used += energy_from_grid
-
-                    # Discharging
-                    elif discharge_rate > 0:
-                        energy = min(discharge_rate, (ev_socs[ev_id] - self.min_soc) * ev.battery_capacity)
-                        if energy > 0:
-                            total_cost -= energy * self.grid.get_sell_price(h)
-                            ev_socs[ev_id] -= energy / ev.battery_capacity
 
                     # Penalties
                     if ev_socs[ev_id] < self.min_soc:
@@ -490,13 +433,8 @@ class MultiEVV2GChargingSystem:
                 continue
 
             charge_idx = ev_id * n_hours
-            discharge_idx = n_evs * n_hours + ev_id * n_hours
 
             charge_rate = np.clip(controls[charge_idx], 0, ev.max_charge_rate)
-            discharge_rate = np.clip(controls[discharge_idx], 0, ev.max_charge_rate)
-
-            if charge_rate > 0.1 and discharge_rate > 0.1:
-                discharge_rate = 0
 
             if charge_rate > 0.1:
                 energy = ev.charge(charge_rate)
@@ -507,12 +445,137 @@ class MultiEVV2GChargingSystem:
                 self.grid_usage[current_hour] += energy_from_grid
                 actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh, Cost: {cost:.2f} €")
 
-            elif discharge_rate > 0.1:
-                energy = ev.discharge(discharge_rate)
-                self.building.receive_v2g_energy(energy)
-                benefit = energy * self.grid.get_sell_price(current_hour)
-                total_benefit += benefit
-                actions_taken.append(f"EV {ev_id}: Discharged {energy:.2f} kWh, Benefit: {benefit:.2f} €")
+        for action in actions_taken:
+            print(action)
+
+        return len(actions_taken) > 0, total_benefit
+
+    def pso_charge(self, current_hour, n_particles=30, n_iterations=50, w=0.7, c1=1.5, c2=1.5):
+        """
+        Particle Swarm Optimization for multi-EV charging schedule (charge-only).
+        Optimizes charging decisions over future horizon.
+        """
+        min_hour = min(ev_cfg['arrival_time'] for ev_cfg in self.evs)
+        max_hour = max(ev_cfg['target_time'] for ev_cfg in self.evs)
+
+        if current_hour >= max_hour:
+            return False, 0
+
+        # Define optimization horizon
+        horizon = min(8, max_hour - current_hour)
+        n_evs = len(self.evs)
+
+        # Particle dimension: action for each EV at each hour in horizon
+        # Action: continuous value [0, 1] for charge rate (0=no charge, 1=max charge)
+        dim = n_evs * horizon
+
+        # Initialize particles (only positive values for charging)
+        particles = np.random.uniform(0, 1, (n_particles, dim))
+        velocities = np.random.uniform(-0.3, 0.3, (n_particles, dim))
+
+        # Personal and global bests
+        p_best = particles.copy()
+        p_best_scores = np.full(n_particles, float('inf'))
+        g_best = particles[0].copy()
+        g_best_score = float('inf')
+
+        def evaluate_particle(particle):
+            """Evaluate cost of a particle's schedule."""
+            total_cost = 0
+            penalty = 0
+
+            # Simulate schedule
+            ev_socs = [ev_cfg['ev'].soc for ev_cfg in self.evs]
+            hour_grid_usage = {h: self.grid_usage[h] for h in range(current_hour, current_hour + horizon)}
+
+            for t in range(horizon):
+                h = current_hour + t
+                if h >= max_hour:
+                    break
+
+                available_capacity = self.grid_capacity_per_hour.get(h, float('inf')) - hour_grid_usage[h]
+                hour_grid_used = 0
+
+                for ev_id, ev_cfg in enumerate(self.evs):
+                    if h < ev_cfg['arrival_time'] or h >= ev_cfg['target_time']:
+                        continue
+
+                    ev = ev_cfg['ev']
+                    action_val = particle[ev_id * horizon + t]
+
+                    # Charge (action_val is between 0 and 1)
+                    charge_rate = action_val * ev.max_charge_rate
+                    energy = min(charge_rate, (1.0 - ev_socs[ev_id]) * ev.battery_capacity,
+                                 available_capacity - hour_grid_used)
+
+                    if energy > 0:
+                        building_energy = max(0, -self.building.get_net_energy_demand(h))
+                        energy_from_grid = max(0, energy - building_energy)
+                        total_cost += energy_from_grid * self.grid.get_price(h)
+                        ev_socs[ev_id] += energy / ev.battery_capacity
+                        hour_grid_used += energy_from_grid
+
+                    # Constraint penalties
+                    if ev_socs[ev_id] < self.min_soc:
+                        penalty += 2000 * (self.min_soc - ev_socs[ev_id])
+                    if ev_socs[ev_id] > 1.0:
+                        penalty += 1000 * (ev_socs[ev_id] - 1.0)
+
+            # Terminal penalties
+            for ev_id, ev_cfg in enumerate(self.evs):
+                if current_hour + horizon >= ev_cfg['target_time']:
+                    shortfall = max(0, ev_cfg['desired_soc'] - ev_socs[ev_id])
+                    penalty += 8000 * shortfall
+
+            return total_cost + penalty
+
+        # PSO iterations
+        for iteration in range(n_iterations):
+            # Evaluate all particles
+            for i in range(n_particles):
+                score = evaluate_particle(particles[i])
+
+                # Update personal best
+                if score < p_best_scores[i]:
+                    p_best_scores[i] = score
+                    p_best[i] = particles[i].copy()
+
+                # Update global best
+                if score < g_best_score:
+                    g_best_score = score
+                    g_best = particles[i].copy()
+
+            # Update velocities and positions
+            r1 = np.random.rand(n_particles, dim)
+            r2 = np.random.rand(n_particles, dim)
+
+            velocities = (w * velocities +
+                          c1 * r1 * (p_best - particles) +
+                          c2 * r2 * (g_best - particles))
+
+            particles = particles + velocities
+            particles = np.clip(particles, 0, 1)  # Only positive values for charging
+
+        # Execute first step of best solution
+        total_benefit = 0
+        actions_taken = []
+
+        for ev_id, ev_cfg in enumerate(self.evs):
+            if current_hour < ev_cfg['arrival_time'] or current_hour >= ev_cfg['target_time']:
+                continue
+
+            ev = ev_cfg['ev']
+            action_val = g_best[ev_id * horizon]  # First time step
+
+            if action_val > 0.1:  # Charge
+                charge_rate = action_val * ev.max_charge_rate
+                energy = ev.charge(charge_rate)
+                building_energy = max(0, -self.building.get_net_energy_demand(current_hour))
+                energy_from_grid = max(0, energy - building_energy)
+                cost = energy_from_grid * self.grid.get_price(current_hour)
+                total_benefit -= cost
+                self.grid_usage[current_hour] += energy_from_grid
+                actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh, Cost: {cost:.2f} €")
 
         for action in actions_taken:
             print(action)
@@ -522,7 +585,7 @@ class MultiEVV2GChargingSystem:
     def dqn_charge(self, current_hour, episodes=1000, batch_size=32, gamma=0.95,
                    epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=0.995):
         """
-        Deep Q-Network for multi-EV charging using neural networks.
+        Deep Q-Network for multi-EV charging using neural networks (charge-only).
         Requires tensorflow/keras.
         """
         try:
@@ -539,7 +602,7 @@ class MultiEVV2GChargingSystem:
         # State: [ev1_soc, ev2_soc, ..., hour, grid_available, building_surplus]
         n_evs = len(self.evs)
         state_size = n_evs + 3  # n_evs SOCs + hour + grid_available + building_surplus
-        n_actions = 3  # charge, discharge, standby
+        n_actions = 2  # charge, standby (no discharge)
 
         # Create Q-networks for each EV
         def create_network():
@@ -609,14 +672,6 @@ class MultiEVV2GChargingSystem:
                             ev_socs[ev_id] += max_energy / ev.battery_capacity
                             episode_grid_usage[h] += energy_from_grid
                             remaining_capacity -= energy_from_grid
-
-                    elif action == 1:  # Discharge
-                        if ev_socs[ev_id] > self.min_soc:
-                            max_energy = min(ev.max_charge_rate,
-                                             (ev_socs[ev_id] - self.min_soc) * ev.battery_capacity)
-                            if max_energy > 0:
-                                reward = max_energy * self.grid.get_sell_price(h)
-                                ev_socs[ev_id] -= max_energy / ev.battery_capacity
 
                     # Penalties
                     if ev_socs[ev_id] < self.min_soc:
@@ -698,163 +753,6 @@ class MultiEVV2GChargingSystem:
                     self.grid_usage[current_hour] += energy_from_grid
                     remaining_capacity -= energy_from_grid
                     actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh, Cost: {cost:.2f} €")
-
-            elif action == 1 and ev.soc > self.min_soc:  # Discharge
-                max_energy = min(ev.max_charge_rate, (ev.soc - self.min_soc) * ev.battery_capacity)
-                if max_energy > 0:
-                    energy = ev.discharge(max_energy)
-                    self.building.receive_v2g_energy(energy)
-                    benefit = energy * self.grid.get_sell_price(current_hour)
-                    total_benefit += benefit
-                    actions_taken.append(f"EV {ev_id}: Discharged {energy:.2f} kWh, Benefit: {benefit:.2f} €")
-
-        for action in actions_taken:
-            print(action)
-
-        return len(actions_taken) > 0, total_benefit
-
-    def pso_charge(self, current_hour, n_particles=30, n_iterations=50, w=0.7, c1=1.5, c2=1.5):
-        """
-        Particle Swarm Optimization for multi-EV charging schedule.
-        Optimizes charging/discharging decisions over future horizon.
-        """
-        min_hour = min(ev_cfg['arrival_time'] for ev_cfg in self.evs)
-        max_hour = max(ev_cfg['target_time'] for ev_cfg in self.evs)
-
-        if current_hour >= max_hour:
-            return False, 0
-
-        # Define optimization horizon
-        horizon = min(8, max_hour - current_hour)
-        n_evs = len(self.evs)
-
-        # Particle dimension: action for each EV at each hour in horizon
-        # Action: continuous value [-1, 1] where negative=discharge, positive=charge
-        dim = n_evs * horizon
-
-        # Initialize particles
-        particles = np.random.uniform(-1, 1, (n_particles, dim))
-        velocities = np.random.uniform(-0.5, 0.5, (n_particles, dim))
-
-        # Personal and global bests
-        p_best = particles.copy()
-        p_best_scores = np.full(n_particles, float('inf'))
-        g_best = particles[0].copy()
-        g_best_score = float('inf')
-
-        def evaluate_particle(particle):
-            """Evaluate cost of a particle's schedule."""
-            total_cost = 0
-            penalty = 0
-
-            # Simulate schedule
-            ev_socs = [ev_cfg['ev'].soc for ev_cfg in self.evs]
-            hour_grid_usage = {h: self.grid_usage[h] for h in range(current_hour, current_hour + horizon)}
-
-            for t in range(horizon):
-                h = current_hour + t
-                if h >= max_hour:
-                    break
-
-                available_capacity = self.grid_capacity_per_hour.get(h, float('inf')) - hour_grid_usage[h]
-                hour_grid_used = 0
-
-                for ev_id, ev_cfg in enumerate(self.evs):
-                    if h < ev_cfg['arrival_time'] or h >= ev_cfg['target_time']:
-                        continue
-
-                    ev = ev_cfg['ev']
-                    action_val = particle[ev_id * horizon + t]
-
-                    if action_val > 0:  # Charge
-                        charge_rate = action_val * ev.max_charge_rate
-                        energy = min(charge_rate, (1.0 - ev_socs[ev_id]) * ev.battery_capacity,
-                                     available_capacity - hour_grid_used)
-
-                        if energy > 0:
-                            building_energy = max(0, -self.building.get_net_energy_demand(h))
-                            energy_from_grid = max(0, energy - building_energy)
-                            total_cost += energy_from_grid * self.grid.get_price(h)
-                            ev_socs[ev_id] += energy / ev.battery_capacity
-                            hour_grid_used += energy_from_grid
-
-                    elif action_val < -0.1:  # Discharge
-                        discharge_rate = -action_val * ev.max_charge_rate
-                        energy = min(discharge_rate, (ev_socs[ev_id] - self.min_soc) * ev.battery_capacity)
-
-                        if energy > 0:
-                            total_cost -= energy * self.grid.get_sell_price(h)
-                            ev_socs[ev_id] -= energy / ev.battery_capacity
-
-                    # Constraint penalties
-                    if ev_socs[ev_id] < self.min_soc:
-                        penalty += 2000 * (self.min_soc - ev_socs[ev_id])
-                    if ev_socs[ev_id] > 1.0:
-                        penalty += 1000 * (ev_socs[ev_id] - 1.0)
-
-            # Terminal penalties
-            for ev_id, ev_cfg in enumerate(self.evs):
-                if current_hour + horizon >= ev_cfg['target_time']:
-                    shortfall = max(0, ev_cfg['desired_soc'] - ev_socs[ev_id])
-                    penalty += 8000 * shortfall
-
-            return total_cost + penalty
-
-        # PSO iterations
-        for iteration in range(n_iterations):
-            # Evaluate all particles
-            for i in range(n_particles):
-                score = evaluate_particle(particles[i])
-
-                # Update personal best
-                if score < p_best_scores[i]:
-                    p_best_scores[i] = score
-                    p_best[i] = particles[i].copy()
-
-                # Update global best
-                if score < g_best_score:
-                    g_best_score = score
-                    g_best = particles[i].copy()
-
-            # Update velocities and positions
-            r1 = np.random.rand(n_particles, dim)
-            r2 = np.random.rand(n_particles, dim)
-
-            velocities = (w * velocities +
-                          c1 * r1 * (p_best - particles) +
-                          c2 * r2 * (g_best - particles))
-
-            particles = particles + velocities
-            particles = np.clip(particles, -1, 1)
-
-        # Execute first step of best solution
-        total_benefit = 0
-        actions_taken = []
-
-        for ev_id, ev_cfg in enumerate(self.evs):
-            if current_hour < ev_cfg['arrival_time'] or current_hour >= ev_cfg['target_time']:
-                continue
-
-            ev = ev_cfg['ev']
-            action_val = g_best[ev_id * horizon]  # First time step
-
-            if action_val > 0.1:  # Charge
-                charge_rate = action_val * ev.max_charge_rate
-                energy = ev.charge(charge_rate)
-                building_energy = max(0, -self.building.get_net_energy_demand(current_hour))
-                energy_from_grid = max(0, energy - building_energy)
-                cost = energy_from_grid * self.grid.get_price(current_hour)
-                total_benefit -= cost
-                self.grid_usage[current_hour] += energy_from_grid
-                actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh, Cost: {cost:.2f} €")
-
-            elif action_val < -0.1:  # Discharge
-                discharge_rate = -action_val * ev.max_charge_rate
-                energy = ev.discharge(discharge_rate)
-                self.building.receive_v2g_energy(energy)
-                benefit = energy * self.grid.get_sell_price(current_hour)
-                total_benefit += benefit
-                actions_taken.append(f"EV {ev_id}: Discharged {energy:.2f} kWh, Benefit: {benefit:.2f} €")
 
         for action in actions_taken:
             print(action)
