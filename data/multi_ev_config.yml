@@ -1,0 +1,41 @@
+# data/multi_ev_config.yml
+panel_area: 150
+panel_efficiency: 0.20
+peak_solar_irradiance: 1000
+building_battery_capacity: 80
+building_battery_efficiency: 0.95
+building_initial_soc: 0.5
+building_dod: 0.8
+duration: 24
+consumption_file: ../data/consumption_profiles.csv
+
+price_profile: [0.08, 0.08, 0.08, 0.08, 0.08, 0.10, 0.12, 0.15, 0, 0.25, 0.30, 0.30, 0.25, 0, 0.18, 0, 0.20, 0.25, 0.30, 0.30, 0.25, 0.20, 0.15, 0.10]
+
+grid_capacity_per_hour: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+
+n_evs: 40
+ev_battery_capacity: 65
+ev_initial_soc_range: [0.2, 0.5]
+ev_desired_soc_range: [0.8, 0.95]
+ev_arrival_window: [1, 12]
+ev_target_window: [12, 23]
+max_charge_rate: 11.0
+max_discharge_rate: 11.0
+energy_per_km: 0.18
+ev_dod: 0.9
+usage_stats: null
+
+simulation_start: 0
+simulation_end: 23
+min_soc: 0.2
+
+rl_episodes: 2000
+rl_lr: 0.1
+rl_gamma: 0.95
+rl_epsilon: 0.15
+
+pso_particles: 40
+pso_iters: 60
+pso_w: 0.7
+pso_c1: 1.5
+pso_c2: 1.5

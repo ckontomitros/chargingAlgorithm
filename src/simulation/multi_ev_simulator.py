@@ -11,27 +11,25 @@ from src.utils.data_generator import load_consumption_profile
 
 
 def random_ev_config(idx: int, cfg: dict, duration: int):
-    """Generate a random EV configuration."""
+    """Generate a random EV configuration from config ranges."""
     arrival = random.randint(cfg['ev_arrival_window'][0],
                              cfg['ev_arrival_window'][1])
-    # stay at least 2 h, at most the full window
-    stay = random.randint(2, cfg['ev_target_window'][1] - arrival)
-    target = arrival + stay
+    # ensure target_time > arrival + 1
+    max_target = min(cfg['ev_target_window'][1], duration - 1)
+    target = random.randint(arrival + 2, max_target)
 
     return {
         'ev': ElectricVehicle(
             battery_capacity=cfg['ev_battery_capacity'],
-            initial_soc=random.uniform(cfg['ev_initial_soc'][0],
-                                       cfg['ev_initial_soc'][1]),
+            initial_soc=random.uniform(*cfg['ev_initial_soc_range']),
             energy_per_km=cfg['energy_per_km'],
             max_charge_rate=cfg['max_charge_rate'],
             max_discharge_rate=cfg['max_discharge_rate'],
-            usage_stats=cfg['usage_stats'],
+            usage_stats=cfg.get('usage_stats'),
             dod=cfg['ev_dod'],
             duration=duration,
         ),
-        'desired_soc': random.uniform(cfg['desired_soc'][0],
-                                      cfg['desired_soc'][1]),
+        'desired_soc': random.uniform(*cfg['ev_desired_soc_range']),
         'arrival_time': arrival,
         'target_time': target,
     }
@@ -39,8 +37,18 @@ def random_ev_config(idx: int, cfg: dict, duration: int):
 
 def run_multi_ev_simulation(cfg: dict):
     """Main entry point – runs the whole multi-EV experiment."""
+    duration = cfg['duration']
+
     # ------------------------------------------------------------------ #
-    # 1. Build the shared environment (building, solar, grid)
+    # 1. Convert list → dict for grid capacity
+    # ------------------------------------------------------------------ #
+    if isinstance(cfg['grid_capacity_per_hour'], list):
+        cfg['grid_capacity_per_hour'] = {
+            h: cfg['grid_capacity_per_hour'][h] for h in range(24)
+        }
+
+    # ------------------------------------------------------------------ #
+    # 2. Build shared environment
     # ------------------------------------------------------------------ #
     building = Building(
         energy_consumption_profile=load_consumption_profile(cfg['consumption_file']),
@@ -51,18 +59,22 @@ def run_multi_ev_simulation(cfg: dict):
         battery_efficiency=cfg['building_battery_efficiency'],
         initial_soc=cfg['building_initial_soc'],
         dod=cfg['building_dod'],
-        duration=cfg['duration']
+        duration=duration
     )
+
+    # Price profile: list → dict
+    if isinstance(cfg['price_profile'], list):
+        cfg['price_profile'] = {h: cfg['price_profile'][h] for h in range(24)}
 
     grid = Grid(price_profile=cfg['price_profile'])
 
     # ------------------------------------------------------------------ #
-    # 2. Create the fleet of EVs
+    # 3. Generate EV fleet
     # ------------------------------------------------------------------ #
-    evs = [random_ev_config(i, cfg, cfg['duration']) for i in range(cfg['n_evs'])]
+    evs = [random_ev_config(i, cfg, duration) for i in range(cfg['n_evs'])]
 
     # ------------------------------------------------------------------ #
-    # 3. Prepare the charging system (charge-only, no V2G)
+    # 4. Charging system
     # ------------------------------------------------------------------ #
     system = MultiEVChargingSystem(
         building=building,
@@ -73,71 +85,90 @@ def run_multi_ev_simulation(cfg: dict):
     )
 
     # ------------------------------------------------------------------ #
-    # 4. Run each algorithm over the whole day
+    # 5. Define algorithms
     # ------------------------------------------------------------------ #
     methods = {
         'simple': system.simple_charge_multi,
-        'rl'    : lambda h: system.rl_charge_multi(h,
-                     episodes=cfg['rl_episodes'],
-                     learning_rate=cfg['rl_lr'],
-                     discount_factor=cfg['rl_gamma'],
-                     epsilon=cfg['rl_epsilon']),
-        'milp'  : system.milp_charge,
-        'pso'   : lambda h: system.pso_charge(h,
-                     n_particles=cfg['pso_particles'],
-                     n_iterations=cfg['pso_iters'],
-                     w=cfg['pso_w'],
-                     c1=cfg['pso_c1'],
-                     c2=cfg['pso_c2'])
+        'rl': lambda h: system.rl_charge_multi(
+            h,
+            episodes=cfg.get('rl_episodes', 1500),
+            learning_rate=cfg.get('rl_lr', 0.1),
+            discount_factor=cfg.get('rl_gamma', 0.95),
+            epsilon=cfg.get('rl_epsilon', 0.15)
+        ),
+
+        'pso': lambda h: system.pso_charge(
+            h,
+            n_particles=cfg.get('pso_particles', 40),
+            n_iterations=cfg.get('pso_iters', 60),
+            w=cfg.get('pso_w', 0.7),
+            c1=cfg.get('pso_c1', 1.5),
+            c2=cfg.get('pso_c2', 1.5)
+        )
     }
 
+    # ------------------------------------------------------------------ #
+    # 6. Run simulation over time
+    # ------------------------------------------------------------------ #
     results = {name: defaultdict(list) for name in methods}
     results['hours'] = []
 
-    # Reset grid usage at the start of the day
+    start_hour = cfg.get('simulation_start', 0)
+    end_hour = cfg.get('simulation_end', duration - 1)
+
     system.reset_grid_usage()
 
-    for hour in range(cfg['simulation_start'], cfg['simulation_end'] + 1):
+    # In run_multi_ev_simulation, modify the simulation loop:
+    for hour in range(start_hour, end_hour + 1):
         results['hours'].append(hour)
 
         for name, func in methods.items():
+            # Create a copy of system for this method (to avoid state interference)
+
+            # Copy EV states from previous hour
+            for i, ev_cfg in enumerate(evs):
+                ev_cfg['ev'].soc = results[name]['ev_soc'][-1][i] if results[name]['ev_soc'] else ev_cfg[
+                    'ev'].soc
+
             acted, benefit = func(hour)
             results[name]['acted'].append(acted)
-            results[name]['benefit'].append(benefit)   # negative cost = benefit
-            # store per-EV SoC for visualisation
+            results[name]['benefit'].append(benefit)
+
+            # Track grid usage for THIS method
+            results[name]['grid_usage'].append(system.grid_usage[hour])
+
+            # Store SoC
             results[name]['ev_soc'].append([ev_cfg['ev'].soc for ev_cfg in evs])
+            results[name]['ev_soc'][-1] = [ev_cfg['ev'].soc for ev_cfg in evs]
+            system.reset_grid_usage()
 
     # ------------------------------------------------------------------ #
-    # 5. Visualise & summarise
+    # 7. Visualize + Summ  # (unchanged)
     # ------------------------------------------------------------------ #
-    visualise_multi_ev(results, cfg, evs)
-    summarise_multi_ev(results, cfg)
+    visualise_multi_ev(results, cfg, evs, system)
+    summarise_multi_ev(results, cfg, system)
 
     return results
 
 
 # ---------------------------------------------------------------------- #
-# 6. Visualisation
+# 6. Visualisation (updated to use system.grid_usage)
 # ---------------------------------------------------------------------- #
-def visualise_multi_ev(results: dict, cfg: dict, evs: list):
+def visualise_multi_ev(results: dict, cfg: dict, evs: list, system):
     hours = results['hours']
-    n_evs = cfg['n_evs']
 
     fig = plt.figure(figsize=(14, 10))
     gs = fig.add_gridspec(3, 1, height_ratios=[2, 1.2, 1], hspace=0.35)
 
-    # ---------- 1. EV SoC (average + min/max envelope) ----------
+    # 1. EV SoC
     ax1 = fig.add_subplot(gs[0])
-    for name, color in zip(['simple', 'rl', 'milp', 'pso'],
+    for name, color in zip(['simple', 'rl',  'pso'],
                            ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']):
-        socs = np.array(results[name]['ev_soc'])               # (T, N)
+        socs = np.array(results[name]['ev_soc'])
         avg = socs.mean(axis=1)
-        low = socs.min(axis=1)
-        high = socs.max(axis=1)
-
+        low, high = socs.min(axis=1), socs.max(axis=1)
         ax1.plot(hours, avg, label=f'{name.upper()} (avg)', color=color, lw=2)
         ax1.fill_between(hours, low, high, color=color, alpha=0.15)
-
     ax1.set_ylabel('EV SoC')
     ax1.set_title('EV Fleet State-of-Charge')
     ax1.legend()
@@ -145,13 +176,19 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list):
     ax1.set_ylim(0, 1)
     ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.0%}'))
 
-    # ---------- 2. Grid usage ----------
+    # ---------- 2. Grid usage (FIXED) ----------
     ax2 = fig.add_subplot(gs[1])
     capacity = [cfg['grid_capacity_per_hour'].get(h, float('inf')) for h in hours]
 
-    for name, color in zip(['simple', 'rl', 'milp', 'pso'],
-                           ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']):
-        usage = [system.grid_usage.get(h, 0) for h in hours]
+    # Track grid usage PER METHOD during simulation
+    for name, color in zip(['simple', 'rl', 'pso'],
+                           ['#1f77b4', '#ff7f0e', '#2ca02c']):
+        # Store usage in results during simulation
+        if 'grid_usage' in results[name]:
+            usage = results[name]['grid_usage']
+        else:
+            usage = [0] * len(hours)  # fallback if not tracked
+
         ax2.plot(hours, usage, label=name.upper(), color=color, marker='o', markersize=4)
 
     ax2.plot(hours, capacity, 'k--', lw=2, label='Capacity')
@@ -160,40 +197,38 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list):
     ax2.legend()
     ax2.grid(True, alpha=0.3)
 
-    # ---------- 3. Cumulative benefit (negative cost) ----------
+    # 3. Cumulative benefit
     ax3 = fig.add_subplot(gs[2])
-    for name, color in zip(['simple', 'rl', 'milp', 'pso'],
+    for name, color in zip(['simple', 'rl', 'pso'],
                            ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']):
         cum = np.cumsum(results[name]['benefit'])
         ax3.plot(hours, cum, label=f'{name.upper()}', color=color, lw=2)
-
     ax3.set_xlabel('Hour of Day')
     ax3.set_ylabel('Cumulative Benefit (€)')
     ax3.set_title('Cumulative Financial Benefit')
     ax3.legend()
     ax3.grid(True, alpha=0.3)
 
-    plt.suptitle('Multi-EV Charging Simulation – Grid-Capacity-Aware', fontsize=16, fontweight='bold')
+    plt.suptitle('Multi-EV Charging – Grid Capacity Aware', fontsize=16, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig('scripts/simulation_results_multi.png', dpi=300, bbox_inches='tight')
+    plt.savefig('simulation_results_multi.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
 # ---------------------------------------------------------------------- #
 # 7. Summary table
 # ---------------------------------------------------------------------- #
-def summarise_multi_ev(results: dict, cfg: dict):
+def summarise_multi_ev(results: dict, cfg: dict, system):
     print("\n" + "="*80)
     print("MULTI-EV SIMULATION SUMMARY")
     print("="*80)
     print(f"{'Method':<8} {'Total Benefit (€)':>18} {'Final Avg SoC':>16} {'Grid Violations':>18}")
     print("-"*80)
 
-    for name in ['simple', 'rl', 'milp', 'pso']:
+    for name in ['simple', 'rl', 'pso']:
         benefit = sum(results[name]['benefit'])
         socs = np.array(results[name]['ev_soc'])
         avg_final = socs[-1].mean()
-        # count hours where usage > capacity
         violations = sum(
             1 for h in results['hours']
             if system.grid_usage.get(h, 0) > cfg['grid_capacity_per_hour'].get(h, float('inf'))
@@ -202,56 +237,3 @@ def summarise_multi_ev(results: dict, cfg: dict):
 
     print("="*80)
 
-
-# ---------------------------------------------------------------------- #
-# 8. Example configuration (put this in data/config.yml or pass a dict)
-# ---------------------------------------------------------------------- #
-EXAMPLE_CONFIG = {
-    # ----- Environment -----
-    'consumption_file': '../data/consumption_profiles.csv',
-    'panel_area': 150.0,
-    'panel_efficiency': 0.20,
-    'peak_solar_irradiance': 1000.0,
-    'building_battery_capacity': 50.0,
-    'building_battery_efficiency': 0.95,
-    'building_initial_soc': 0.5,
-    'building_dod': 0.8,
-    'duration': 24,
-
-    # ----- Grid -----
-    'price_profile': {h: 0.12 if 7 <= h <= 22 else 0.08 for h in range(24)},
-    'grid_capacity_per_hour': {h: 30.0 for h in range(24)},   # 30 kW max per hour
-
-    # ----- EVs -----
-    'n_evs': 12,
-    'ev_battery_capacity': 60.0,
-    'ev_initial_soc': [0.2, 0.5],
-    'energy_per_km': 0.18,
-    'max_charge_rate': 11.0,
-    'max_discharge_rate': 11.0,
-    'usage_stats': None,
-    'ev_dod': 0.9,
-    'desired_soc': [0.8, 0.95],
-    'ev_arrival_window': [6, 10],
-    'ev_target_window': [14, 22],
-
-    # ----- Simulation window -----
-    'simulation_start': 0,
-    'simulation_end': 23,
-
-    # ----- Algorithm hyper-parameters -----
-    'min_soc': 0.2,
-    'rl_episodes': 1500,
-    'rl_lr': 0.08,
-    'rl_gamma': 0.96,
-    'rl_epsilon': 0.12,
-    'pso_particles': 40,
-    'pso_iters': 60,
-    'pso_w': 0.72,
-    'pso_c1': 1.49,
-    'pso_c2': 1.49,
-}
-
-if __name__ == '__main__':
-    # You can replace EXAMPLE_CONFIG with yaml-loaded dict in production
-    run_multi_ev_simulation(EXAMPLE_CONFIG)
