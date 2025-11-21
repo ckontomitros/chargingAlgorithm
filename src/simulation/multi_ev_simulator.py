@@ -16,7 +16,7 @@ def random_ev_config(idx: int, cfg: dict, duration: int):
                              cfg['ev_arrival_window'][1])
     # ensure target_time > arrival + 1
     max_target = min(cfg['ev_target_window'][1], duration - 1)
-    target = random.randint(arrival + 2, max_target)
+    target = random.randint(cfg['ev_target_window'][0], max_target)
 
     return {
         'ev': ElectricVehicle(
@@ -91,20 +91,13 @@ def run_multi_ev_simulation(cfg: dict):
         'simple': system.simple_charge_multi,
         'rl': lambda h: system.rl_charge_multi(
             h,
-            episodes=cfg.get('rl_episodes', 1500),
+            episodes=cfg.get('rl_episodes', 8000),
             learning_rate=cfg.get('rl_lr', 0.1),
-            discount_factor=cfg.get('rl_gamma', 0.95),
-            epsilon=cfg.get('rl_epsilon', 0.15)
+            discount_factor=cfg.get('rl_gamma', 1),
+            epsilon=cfg.get('rl_epsilon', 0.25)
         ),
 
-        'pso': lambda h: system.pso_charge(
-            h,
-            n_particles=cfg.get('pso_particles', 40),
-            n_iterations=cfg.get('pso_iters', 60),
-            w=cfg.get('pso_w', 0.7),
-            c1=cfg.get('pso_c1', 1.5),
-            c2=cfg.get('pso_c2', 1.5)
-        )
+
     }
 
     # ------------------------------------------------------------------ #
@@ -162,7 +155,7 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list, system):
 
     # 1. EV SoC
     ax1 = fig.add_subplot(gs[0])
-    for name, color in zip(['simple', 'rl',  'pso'],
+    for name, color in zip(['simple', 'rl',],
                            ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']):
         socs = np.array(results[name]['ev_soc'])
         avg = socs.mean(axis=1)
@@ -181,7 +174,7 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list, system):
     capacity = [cfg['grid_capacity_per_hour'].get(h, float('inf')) for h in hours]
 
     # Track grid usage PER METHOD during simulation
-    for name, color in zip(['simple', 'rl', 'pso'],
+    for name, color in zip(['simple', 'rl', ],
                            ['#1f77b4', '#ff7f0e', '#2ca02c']):
         # Store usage in results during simulation
         if 'grid_usage' in results[name]:
@@ -199,8 +192,8 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list, system):
 
     # 3. Cumulative benefit
     ax3 = fig.add_subplot(gs[2])
-    for name, color in zip(['simple', 'rl', 'pso'],
-                           ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']):
+    for name, color in zip(['simple', 'rl', ],
+                           ['#1f77b4', '#ff7f0e', '#2ca02c']):
         cum = np.cumsum(results[name]['benefit'])
         ax3.plot(hours, cum, label=f'{name.upper()}', color=color, lw=2)
     ax3.set_xlabel('Hour of Day')
@@ -225,7 +218,7 @@ def summarise_multi_ev(results: dict, cfg: dict, system):
     print(f"{'Method':<8} {'Total Benefit (€)':>18} {'Final Avg SoC':>16} {'Grid Violations':>18}")
     print("-"*80)
 
-    for name in ['simple', 'rl', 'pso']:
+    for name in ['simple', 'rl', ]:
         benefit = sum(results[name]['benefit'])
         socs = np.array(results[name]['ev_soc'])
         avg_final = socs[-1].mean()

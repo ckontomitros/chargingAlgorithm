@@ -27,53 +27,88 @@ class MultiEVChargingSystem:
         self.grid_usage = defaultdict(float)
 
     def simple_charge_multi(self, hour):
-        """Simple algorithm for multiple EVs: Charge available EVs respecting grid constraints."""
+        """Simple algorithm for multiple EVs: Charge available EVs respecting grid constraints, using building renewables first."""
         total_cost = 0
         charged_evs = []
         available_grid_capacity = self.grid_capacity_per_hour.get(hour, float('inf')) - self.grid_usage[hour]
+
+        # Compute building surplus directly (NO side effects!)
+        consumption = self.building.energy_consumption_profile[hour % len(self.building.energy_consumption_profile)]
+        production = self.building.renewable_energy_profile[hour % len(self.building.renewable_energy_profile)]
+        building_net = consumption - production
+        building_surplus = max(0, -building_net)
+        remaining_surplus = building_surplus
 
         for i, ev_config in enumerate(self.evs):
             ev = ev_config['ev']
             arrival_time = ev_config['arrival_time']
             target_time = ev_config['target_time']
             desired_soc = ev_config['desired_soc']
-
             # Skip if not arrived, already charged, or departed
             if hour < arrival_time or hour >= target_time or ev.soc >= desired_soc:
                 continue
-
             # Calculate energy needed
             energy_needed = min(ev.max_charge_rate,
                                 (desired_soc - ev.soc) * ev.battery_capacity)
+            if energy_needed <= 0:
+                continue
 
-            # Check grid capacity
-            if energy_needed <= available_grid_capacity:
-                energy = ev.charge(energy_needed)
-                cost = energy * self.grid.get_price(hour)
-                total_cost += cost
-                self.grid_usage[hour] += energy
-                available_grid_capacity -= energy
-                charged_evs.append(i)
-                print(f"EV {i}: Charged {energy:.2f} kWh at hour {hour}, Cost: {cost:.2f} €")
+            # Use building surplus first
+            # Use building surplus first
+            energy_from_surplus = min(energy_needed, remaining_surplus)
 
-        return len(charged_evs) > 0, total_cost * -1  # Return negative cost as benefit
+            # Remaining from grid
+            remaining_needed = energy_needed - energy_from_surplus
+            energy_from_grid_requested = 0
+            if remaining_needed > 0 and available_grid_capacity > 0:
+                energy_from_grid_requested = min(remaining_needed, available_grid_capacity)
 
-    def rl_charge_multi(self, hour, episodes=2000, learning_rate=0.1,
-                        discount_factor=0.95, epsilon=0.15):
+            total_requested = energy_from_surplus + energy_from_grid_requested
+            if total_requested > 0:
+                actual_energy = ev.charge(total_requested)
+
+                # Calculate actual split based on what was actually charged
+                if actual_energy > 0 and total_requested > 0:
+                    charge_ratio = actual_energy / total_requested
+                    actual_from_surplus = energy_from_surplus * charge_ratio
+                    actual_from_grid = energy_from_grid_requested * charge_ratio
+
+                    # Update tracking with actual values
+                    remaining_surplus -= actual_from_surplus
+                    available_grid_capacity -= actual_from_grid
+                    self.grid_usage[hour] += actual_from_grid
+
+                    cost = actual_from_grid * self.grid.get_price(hour)
+                    total_cost += cost
+                    charged_evs.append(i)
+                    print(f"EV {i}: Charged {actual_energy:.2f} kWh ({actual_from_surplus:.2f} from renewables, "
+                          f"{actual_from_grid:.2f} from grid) at hour {hour}, Cost: {cost:.2f} EUR")
+
+        return len(charged_evs) > 0, total_cost * -1
+
+    def rl_charge_multi(self, hour, episodes=8000, learning_rate=0.15,
+                        discount_factor=0.99, epsilon=0.35):
         """
         Multi-agent RL algorithm for multiple EVs with grid constraints (charge-only).
         Uses centralized learning with decentralized execution.
+        Fixed version with proper state representation and reward structure.
         """
         if not any(ev_cfg['arrival_time'] <= hour < ev_cfg['target_time']
                    for ev_cfg in self.evs):
             return False, 0
 
         # Discretize SoC states
-        soc_bins = np.arange(self.min_soc, 1.01, 0.1)
+        soc_bins = np.arange(self.min_soc, 1.01, 0.01)
         actions = ['charge', 'standby']  # Only charging and standby
 
-        # Create state space: (ev_id, soc_bin, hour, grid_available)
+        # Create state space with price awareness
         grid_bins = [0, 0.25, 0.5, 0.75, 1.0]  # Fraction of capacity available
+
+        # Get price range for normalization
+        all_prices = [self.grid.get_price(h) for h in range(24)]
+        min_price = min(all_prices)
+        max_price = max(all_prices)
+        price_range = max_price - min_price if max_price > min_price else 1.0
 
         # Initialize Q-table as nested dictionary for sparse representation
         Q = defaultdict(lambda: np.zeros(len(actions)))
@@ -101,19 +136,33 @@ class MultiEVChargingSystem:
             for h in range(min_hour, max_hour):
                 available_capacity = self.grid_capacity_per_hour.get(h, float('inf'))
                 remaining_capacity = available_capacity - episode_grid_usage[h]
+                building_net = (self.building.energy_consumption_profile[
+                                    h % len(self.building.energy_consumption_profile)] -
+                                self.building.renewable_energy_profile[h % len(self.building.renewable_energy_profile)])
+                building_surplus = max(0, -building_net)
+                remaining_surplus = building_surplus
+
+                # Get current price and normalize
+                current_price = self.grid.get_price(h)
+                price_bin = min(4, int(5 * (current_price - min_price) / price_range)) if price_range > 0 else 0
 
                 # Process each EV
                 for ev_id, ev_state in enumerate(ev_states):
                     if h < ev_state['arrival'] or h >= ev_state['target']:
                         continue
 
-                    # Discretize state
+                    # Skip if already charged
+                    if ev_state['soc'] >= ev_state['desired_soc']:
+                        continue
+
+                    # Discretize state with time-to-deadline and price
                     soc_bin = min(len(soc_bins) - 1,
-                                  max(0, int((ev_state['soc'] - self.min_soc) / 0.1)))
+                                  max(0, int((ev_state['soc'] - self.min_soc) / 0.01)))
                     grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
                         if available_capacity > 0 else 0
+                    time_to_deadline = ev_state['target'] - h
 
-                    state = (ev_id, soc_bin, h, grid_bin)
+                    state = (ev_id, soc_bin, time_to_deadline, grid_bin, price_bin)
 
                     # Epsilon-greedy action selection
                     if np.random.rand() < epsilon:
@@ -127,26 +176,26 @@ class MultiEVChargingSystem:
                     reward = 0
 
                     if action == 'charge' and remaining_capacity > 0:
-                        # Calculate available building energy
-                        building_energy = max(0, -self.building.get_net_energy_demand(h))
-
-                        # Energy to charge
+                        # Energy to charge (don't constrain by grid capacity for total energy)
                         max_energy = min(
                             ev_state['max_rate'],
-                            (1.0 - ev_state['soc']) * ev_state['battery_cap'],
-                            remaining_capacity
+                            (1.0 - ev_state['soc']) * ev_state['battery_cap']
                         )
 
                         if max_energy > 0:
-                            energy_from_building = min(building_energy, max_energy)
-                            energy_from_grid = max_energy - energy_from_building
+                            energy_from_building = min(max_energy, remaining_surplus)
+                            energy_from_grid_requested = max_energy - energy_from_building
+                            energy_from_grid = min(energy_from_grid_requested, remaining_capacity)
+                            actual_energy = energy_from_building + energy_from_grid
 
-                            # Cost for grid energy only
-                            reward = -energy_from_grid * self.grid.get_price(h)
+                            # Simple cost-based reward (just the actual cost)
+                            grid_cost = energy_from_grid * current_price
+                            reward = -grid_cost
 
                             # Update state
-                            ev_state['soc'] += max_energy / ev_state['battery_cap']
+                            ev_state['soc'] += actual_energy / ev_state['battery_cap']
                             episode_grid_usage[h] += energy_from_grid
+                            remaining_surplus -= energy_from_building
                             remaining_capacity -= energy_from_grid
 
                     # Penalties and bonuses
@@ -156,20 +205,34 @@ class MultiEVChargingSystem:
                     if ev_state['soc'] > 1.0:
                         reward -= 500
 
-                    # Strong penalty if target not met at deadline
-                    if h == ev_state['target'] - 1:
-                        if ev_state['soc'] < ev_state['desired_soc']:
-                            shortfall = ev_state['desired_soc'] - ev_state['soc']
-                            reward -= 10000 * shortfall
-                        else:
-                            reward += 50  # Bonus for meeting target
+                    # Progressive penalty as deadline approaches
+                    if ev_state['soc'] < ev_state['desired_soc']:
+                        shortfall = ev_state['desired_soc'] - ev_state['soc']
+                        hours_remaining = ev_state['target'] - h
+
+                        # Penalty increases exponentially as deadline approaches
+                        if hours_remaining <= 1:
+                            reward -= 2000 * shortfall  # Critical: almost out of time
+                        elif hours_remaining <= 3:
+                            reward -= 1000 * shortfall  # Urgent
+                        elif hours_remaining <= 6:
+                            reward -= 200 * shortfall  # Getting tight
+                        elif hours_remaining <= 10:
+                            reward -= 50 * shortfall  # Should be charging
+
+                    # Bonus for meeting target
+                    if h == ev_state['target'] - 1 and ev_state['soc'] >= ev_state['desired_soc']:
+                        reward += 20
 
                     # Update Q-value
                     next_soc_bin = min(len(soc_bins) - 1,
-                                       max(0, int((ev_state['soc'] - self.min_soc) / 0.1)))
+                                       max(0, int((ev_state['soc'] - self.min_soc) / 0.01)))
                     next_grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
                         if available_capacity > 0 else 0
-                    next_state = (ev_id, next_soc_bin, min(h + 1, max_hour - 1), next_grid_bin)
+                    next_time_to_deadline = max(1, time_to_deadline - 1)
+                    next_price_bin = price_bin  # Price at next hour (approximation)
+
+                    next_state = (ev_id, next_soc_bin, next_time_to_deadline, next_grid_bin, next_price_bin)
 
                     best_next_q = np.max(Q[next_state])
                     Q[state][action_idx] += learning_rate * (
@@ -182,6 +245,16 @@ class MultiEVChargingSystem:
         available_capacity = self.grid_capacity_per_hour.get(hour, float('inf'))
         remaining_capacity = available_capacity - self.grid_usage[hour]
 
+        # Compute building surplus for the CURRENT hour
+        building_net = (self.building.energy_consumption_profile[hour % len(self.building.energy_consumption_profile)] -
+                        self.building.renewable_energy_profile[hour % len(self.building.renewable_energy_profile)])
+        building_surplus = max(0, -building_net)
+        remaining_surplus = building_surplus
+
+        # Get current price info
+        current_price = self.grid.get_price(hour)
+        price_bin = min(4, int(5 * (current_price - min_price) / price_range)) if price_range > 0 else 0
+
         for ev_id, ev_config in enumerate(self.evs):
             ev = ev_config['ev']
             arrival_time = ev_config['arrival_time']
@@ -191,12 +264,16 @@ class MultiEVChargingSystem:
             if hour < arrival_time or hour >= target_time:
                 continue
 
+            # Skip if already charged to desired SoC
+            if ev.soc >= desired_soc:
+                continue
+
             # Get current state
-            soc_bin = min(len(soc_bins) - 1,
-                          max(0, int((ev.soc - self.min_soc) / 0.1)))
-            grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
-                if available_capacity > 0 else 0
-            state = (ev_id, soc_bin, hour, grid_bin)
+            soc_bin = min(len(soc_bins) - 1, max(0, int((ev.soc - self.min_soc) / 0.01)))
+            grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) if available_capacity > 0 else 0
+            time_to_deadline = target_time - hour
+
+            state = (ev_id, soc_bin, time_to_deadline, grid_bin, price_bin)
 
             # Choose best action
             action_idx = np.argmax(Q[state])
@@ -204,27 +281,38 @@ class MultiEVChargingSystem:
 
             if action == 'standby':
                 continue
-
             elif action == 'charge' and remaining_capacity > 0:
-                building_energy = max(0, -self.building.get_net_energy_demand(hour))
                 max_energy = min(
                     ev.max_charge_rate,
-                    (1.0 - ev.soc) * ev.battery_capacity,
-                    remaining_capacity
+                    (1.0 - ev.soc) * ev.battery_capacity
                 )
 
                 if max_energy > 0:
-                    energy = ev.charge(max_energy)
-                    energy_from_building = min(building_energy, energy)
-                    energy_from_grid = energy - energy_from_building
+                    # Use building surplus first
+                    energy_from_building = min(max_energy, remaining_surplus)
+                    energy_from_grid_requested = max_energy - energy_from_building
+                    energy_from_grid_requested = min(energy_from_grid_requested, remaining_capacity)
+                    total_requested = energy_from_building + energy_from_grid_requested
 
-                    cost = energy_from_grid * self.grid.get_price(hour)
-                    total_benefit -= cost
-                    self.grid_usage[hour] += energy_from_grid
-                    remaining_capacity -= energy_from_grid
+                    # Charge the EV (may accept less than requested)
+                    charged_energy = ev.charge(total_requested)
 
-                    actions_taken.append(f"EV {ev_id}: Charged {energy:.2f} kWh "
-                                         f"({energy_from_grid:.2f} from grid), Cost: {cost:.2f} €")
+                    # Calculate actual split based on what was actually charged
+                    if charged_energy > 0:
+                        # Proportion of requested that was actually charged
+                        charge_ratio = charged_energy / total_requested
+                        actual_from_building = energy_from_building * charge_ratio
+                        actual_from_grid = energy_from_grid_requested * charge_ratio
+
+                        # Calculate cost (only for grid energy actually used)
+                        cost = actual_from_grid * current_price
+                        total_benefit -= cost
+                        self.grid_usage[hour] += actual_from_grid
+                        remaining_surplus -= actual_from_building
+                        remaining_capacity -= actual_from_grid
+
+                        actions_taken.append(f"EV {ev_id}: Charged {charged_energy:.2f} kWh "
+                                             f"({actual_from_grid:.2f} from grid), Cost: {cost:.2f} €")
 
         # Print actions
         for action_msg in actions_taken:
