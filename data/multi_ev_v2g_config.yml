@@ -1,0 +1,112 @@
+# data/multi_ev_v2g_config.yml
+# Configuration for Multi-EV Vehicle-to-Grid (V2G) Simulation
+
+# ============================================================================
+# Building Configuration
+# ============================================================================
+panel_area: 150                      # Solar panel area in m²
+panel_efficiency: 0.20               # Solar panel efficiency (20%)
+peak_solar_irradiance: 1000          # Peak solar irradiance in W/m²
+building_battery_capacity: 80        # Building battery capacity in kWh
+building_battery_efficiency: 0.95    # Building battery efficiency (95%)
+building_initial_soc: 0.5            # Initial state of charge (50%)
+building_dod: 0.8                    # Depth of discharge limit (80%)
+building_max_charge_rate: 50         # Building battery max charge rate in kW
+building_max_discharge_rate: 50      # Building battery max discharge rate in kW
+duration: 24                         # Simulation duration in hours
+consumption_file: ../data/consumption_profiles.csv
+
+# ============================================================================
+# Grid Configuration
+# ============================================================================
+# Purchase prices (€/kWh) - higher during peak hours
+price_profile: [
+  0.48, 0.48, 0.48, 0.48,  # 00:00-03:00 - Night (low-medium)
+  0.58, 0.60, 0.65, 0.70,  # 04:00-07:00 - Early morning (rising)
+  0.50, 0.45, 0.40, 0.35,  # 08:00-11:00 - Morning (falling)
+  0.30, 0.25, 0.20, 0.18,  # 12:00-15:00 - Midday (low - solar peak)
+  0.25, 0.35, 0.45, 0.55,  # 16:00-19:00 - Evening (rising)
+  0.50, 0.45, 0.35, 0.30   # 20:00-23:00 - Night (falling)
+]
+
+# Sell prices (€/kWh) - V2G revenue, typically lower than purchase
+sell_price_profile: [
+  0.38, 0.38, 0.38, 0.38,  # 00:00-03:00 - Night
+  0.48, 0.50, 0.55, 0.60,  # 04:00-07:00 - Early morning
+  0.40, 0.35, 0.30, 0.25,  # 08:00-11:00 - Morning
+  0.20, 0.15, 0.12, 0.10,  # 12:00-15:00 - Midday
+  0.20, 0.30, 0.40, 0.50,  # 16:00-19:00 - Evening (peak demand)
+  0.45, 0.40, 0.30, 0.25   # 20:00-23:00 - Night
+]
+
+# Grid capacity constraint (kW) - maximum power that can be drawn per hour
+# With 15 EVs at 150kW each, need ~2250kW for all to charge simultaneously
+grid_capacity_per_hour: [
+  1000, 1000, 1000, 1000,  # 00:00-03:00 - Night
+  1000, 1000, 1500, 1500,  # 04:00-07:00 - Morning
+  2000, 2000, 2000, 2000,  # 08:00-11:00 - Business hours (higher capacity)
+  2000, 2000, 2000, 2000,  # 12:00-15:00 - Midday
+  2000, 2000, 2000, 1500,  # 16:00-19:00 - Evening
+  1000, 1000, 1000, 1000   # 20:00-23:00 - Night
+]
+
+# ============================================================================
+# EV Fleet Configuration
+# ============================================================================
+n_evs: 15                            # Number of electric vehicles
+ev_battery_capacity: 100             # EV battery capacity in kWh (e.g., Tesla Model 3)
+ev_initial_soc_range: [0.2, 0.3]     # Random initial SoC range (30%-50%)
+ev_desired_soc_range: [0.7, 0.8]   # Random desired SoC range (85%-95%)
+ev_arrival_window: [6, 9]            # EVs arrive between 6:00-9:00 AM
+ev_target_window: [16, 24]           # EVs must be ready between 4:00-8:00 PM
+max_charge_rate: 22                # Maximum charging rate in kW (Level 2 charger)
+max_discharge_rate: 22            # Maximum V2G discharge rate in kW
+energy_per_km: 0.18                  # Energy consumption per km
+ev_dod: 0.9                          # EV depth of discharge limit (90%)
+usage_stats: null                    # No driving pattern (can add later)
+
+# ============================================================================
+# Simulation Time Window
+# ============================================================================
+simulation_start: 0                  # Start hour (midnight)
+simulation_end: 23                   # End hour (11 PM)
+min_soc: 0.2                         # Minimum SoC to prevent battery degradation
+
+# ============================================================================
+# Algorithm Parameters
+# ============================================================================
+
+# Reinforcement Learning (Q-Learning)
+rl_episodes: 15000                    # Training episodes (increased for V2G complexity)
+rl_lr: 0.15                          # Learning rate (slightly higher for faster convergence)
+rl_gamma: 1.0                        # Discount factor (1.0 = consider future equally)
+rl_epsilon: 0.10                     # Exploration rate (10% - focus more on exploitation)
+
+# Model Predictive Control (MPC)
+mpc_horizon: 8                       # Prediction horizon in hours
+mpc_iterations: 60                   # Optimization iterations
+
+# Particle Swarm Optimization (PSO)
+pso_particles: 40                    # Number of particles in swarm
+pso_iters: 60                        # PSO iterations
+pso_w: 0.7                           # Inertia weight
+pso_c1: 1.5                          # Cognitive parameter
+pso_c2: 1.5                          # Social parameter
+
+# Deep Q-Network (DQN) - if using
+dqn_episodes: 1000                   # Training episodes
+dqn_batch_size: 32                   # Batch size for experience replay
+dqn_gamma: 0.95                      # Discount factor
+dqn_epsilon_start: 1.0               # Initial exploration rate
+dqn_epsilon_end: 0.01                # Final exploration rate
+dqn_epsilon_decay: 0.995             # Epsilon decay rate
+
+# ============================================================================
+# Notes
+# ============================================================================
+# - V2G allows EVs to discharge back to the grid during high-price periods
+# - Sell prices are typically 80-90% of purchase prices
+# - Grid capacity represents transformer/distribution limits
+# - EVs must reach desired_soc by target_time for daily driving needs
+# - min_soc prevents excessive battery degradation
+# - Arrival/target windows simulate workplace/home charging scenarios

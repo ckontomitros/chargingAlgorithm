@@ -5,9 +5,23 @@ from .battery import Battery
 
 class Building(Battery):
     def __init__(self, energy_consumption_profile, panel_area, panel_efficiency, peak_solar_irradiance,
-                 battery_capacity, battery_efficiency, initial_soc, dod, duration):
+                 battery_capacity, battery_efficiency, initial_soc, dod, 
+                 max_charge_rate=None, max_discharge_rate=None):
+        # Default charge/discharge rates to battery capacity if not specified
+        if max_charge_rate is None:
+            max_charge_rate = battery_capacity
+        if max_discharge_rate is None:
+            max_discharge_rate = battery_capacity
+            
         # Initialize Battery base class
-        super().__init__(battery_capacity, initial_soc, battery_efficiency, dod, duration)
+        super().__init__(
+            battery_capacity=battery_capacity,
+            initial_soc=initial_soc,
+            battery_efficiency=battery_efficiency,
+            dod=dod,
+            max_charge_rate=max_charge_rate,
+            max_discharge_rate=max_discharge_rate
+        )
 
         # Building-specific attributes
         self.energy_consumption_profile = energy_consumption_profile  # kWh/hour
@@ -49,10 +63,9 @@ class Building(Battery):
     def receive_v2g_energy(self, energy):
         """Receive energy discharged from EV, store in battery or reduce grid demand."""
         # Try to store in building's battery
-        soc_energy = self.soc * self.battery_capacity
-        p_ch_t = min(self.p_max, self.battery_capacity - soc_energy)
-        energy_to_battery = min(p_ch_t, energy * self.battery_efficiency)
-        self.soc = (soc_energy + energy_to_battery) / self.battery_capacity
+        energy_to_battery = self.charge(energy)
+        
         # Remaining energy reduces grid demand
-        self.v2g_energy = (energy - energy_to_battery / self.battery_efficiency)
+        self.v2g_energy = energy - energy_to_battery
+        
         return energy

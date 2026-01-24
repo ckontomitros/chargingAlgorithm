@@ -154,7 +154,7 @@ def visualize_results(results, config):
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
     plt.savefig('simulation_results.png', dpi=300, bbox_inches='tight')
     print(f"\nVisualization saved as 'simulation_results.png'")
-    plt.show()
+    plt.close()
 
     # Print summary statistics
     print("\n" + "=" * 60)

@@ -205,7 +205,7 @@ def visualise_multi_ev(results: dict, cfg: dict, evs: list, system):
     plt.suptitle('Multi-EV Charging – Grid Capacity Aware', fontsize=16, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig('simulation_results_multi.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.close()
 
 
 # ---------------------------------------------------------------------- #
