@@ -6,7 +6,7 @@
 # ============================================================================
 panel_area: 150                      # Solar panel area in m²
 panel_efficiency: 0.20               # Solar panel efficiency (20%)
-peak_solar_irradiance: 1000          # Peak solar irradiance in W/m²
+peak_solar_irradiance: 1000          # Peak solar irradiance in W/m² (fallback if no PVGIS data)
 building_battery_capacity: 80        # Building battery capacity in kWh
 building_battery_efficiency: 0.95    # Building battery efficiency (95%)
 building_initial_soc: 0.5            # Initial state of charge (50%)
@@ -14,7 +14,11 @@ building_dod: 0.8                    # Depth of discharge limit (80%)
 building_max_charge_rate: 50         # Building battery max charge rate in kW
 building_max_discharge_rate: 50      # Building battery max discharge rate in kW
 duration: 24                         # Simulation duration in hours
-consumption_file: ../data/consumption_profiles.csv
+consumption_file: data/office_single_building_timeseries.csv
+
+# Solar Irradiance Data (PVGIS)
+irradiance_file: data/irradiance_pvgis.csv   # Path to PVGIS irradiance data
+irradiance_date: "20180312"                   # Simulation date: March 12, 2018
 
 # ============================================================================
 # Grid Configuration
@@ -39,15 +43,15 @@ sell_price_profile: [
   0.45, 0.40, 0.30, 0.25   # 20:00-23:00 - Night
 ]
 
-# Grid capacity constraint (kW) - maximum power that can be drawn per hour
-# With 15 EVs at 150kW each, need ~2250kW for all to charge simultaneously
+# Grid capacity constraint (kW) - maximum power available for EV charging
+# Building uses ~8kW, 15 EVs at 22kW = 330kW max. Constrained to create realistic limits.
 grid_capacity_per_hour: [
-  1000, 1000, 1000, 1000,  # 00:00-03:00 - Night
-  1000, 1000, 1500, 1500,  # 04:00-07:00 - Morning
-  2000, 2000, 2000, 2000,  # 08:00-11:00 - Business hours (higher capacity)
-  2000, 2000, 2000, 2000,  # 12:00-15:00 - Midday
-  2000, 2000, 2000, 1500,  # 16:00-19:00 - Evening
-  1000, 1000, 1000, 1000   # 20:00-23:00 - Night
+  80, 80, 80, 80,      # 00:00-03:00 - Night (low demand)
+  80, 80, 100, 150,    # 04:00-07:00 - Morning (rising)
+  200, 250, 250, 250,  # 08:00-11:00 - Business hours
+  300, 300, 300, 250,  # 12:00-15:00 - Midday (solar offset allows higher)
+  200, 150, 100, 100,  # 16:00-19:00 - Evening peak (restricted)
+  80, 80, 80, 80       # 20:00-23:00 - Night
 ]
 
 # ============================================================================
@@ -55,12 +59,12 @@ grid_capacity_per_hour: [
 # ============================================================================
 n_evs: 15                            # Number of electric vehicles
 ev_battery_capacity: 100             # EV battery capacity in kWh (e.g., Tesla Model 3)
-ev_initial_soc_range: [0.2, 0.3]     # Random initial SoC range (30%-50%)
-ev_desired_soc_range: [0.7, 0.8]   # Random desired SoC range (85%-95%)
+ev_initial_soc_range: [0.2, 0.3]     # Random initial SoC range (20%-30%)
+ev_desired_soc_range: [0.7, 0.8]     # Random desired SoC range (70%-80%)
 ev_arrival_window: [6, 9]            # EVs arrive between 6:00-9:00 AM
 ev_target_window: [16, 24]           # EVs must be ready between 4:00-8:00 PM
-max_charge_rate: 22                # Maximum charging rate in kW (Level 2 charger)
-max_discharge_rate: 22            # Maximum V2G discharge rate in kW
+max_charge_rate: 22                  # Maximum charging rate in kW (Level 2 charger)
+max_discharge_rate: 22               # Maximum V2G discharge rate in kW
 energy_per_km: 0.18                  # Energy consumption per km
 ev_dod: 0.9                          # EV depth of discharge limit (90%)
 usage_stats: null                    # No driving pattern (can add later)
@@ -77,7 +81,7 @@ min_soc: 0.2                         # Minimum SoC to prevent battery degradatio
 # ============================================================================
 
 # Reinforcement Learning (Q-Learning)
-rl_episodes: 15000                    # Training episodes (increased for V2G complexity)
+rl_episodes: 15000                   # Training episodes (increased for V2G complexity)
 rl_lr: 0.15                          # Learning rate (slightly higher for faster convergence)
 rl_gamma: 1.0                        # Discount factor (1.0 = consider future equally)
 rl_epsilon: 0.10                     # Exploration rate (10% - focus more on exploitation)

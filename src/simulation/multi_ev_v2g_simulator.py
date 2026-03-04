@@ -6,7 +6,7 @@ from src.models.building import Building
 from src.models.electric_vehicle import ElectricVehicle
 from src.models.grid import Grid
 from src.models.multi_ev_v2g_charging_system import MultiEVV2GChargingSystem
-from src.utils.data_generator import load_consumption_profile
+from src.utils.data_generator import load_consumption_profile, load_irradiance_pvgis
 
 
 def random_ev_config(idx: int, cfg: dict, duration: int):
@@ -54,8 +54,29 @@ def run_multi_ev_v2g_simulation(cfg: dict):
     # ------------------------------------------------------------------ #
     # 2. Build shared environment
     # ------------------------------------------------------------------ #
+    # Resolve file paths relative to project root
+    import os
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    consumption_file = cfg['consumption_file']
+    if not os.path.isabs(consumption_file):
+        if not os.path.exists(consumption_file):
+            consumption_file = os.path.join(project_root, consumption_file)
+    
+    # Load irradiance data from PVGIS if specified
+    irradiance_profile = None
+    if cfg.get('irradiance_file') and cfg.get('irradiance_date'):
+        irradiance_file = cfg['irradiance_file']
+        if not os.path.isabs(irradiance_file):
+            if not os.path.exists(irradiance_file):
+                irradiance_file = os.path.join(project_root, irradiance_file)
+        
+        irradiance_profile = load_irradiance_pvgis(irradiance_file, cfg['irradiance_date'])
+        print(f"📡 Loaded PVGIS irradiance data for date: {cfg['irradiance_date']}")
+        print(f"   Peak irradiance: {max(irradiance_profile):.1f} W/m²")
+    
     building = Building(
-        energy_consumption_profile=load_consumption_profile(cfg['consumption_file']),
+        energy_consumption_profile=load_consumption_profile(consumption_file),
         panel_area=cfg['panel_area'],
         panel_efficiency=cfg['panel_efficiency'],
         peak_solar_irradiance=cfg['peak_solar_irradiance'],
@@ -64,7 +85,8 @@ def run_multi_ev_v2g_simulation(cfg: dict):
         initial_soc=cfg['building_initial_soc'],
         dod=cfg['building_dod'],
         max_charge_rate=cfg.get('building_max_charge_rate'),
-        max_discharge_rate=cfg.get('building_max_discharge_rate')
+        max_discharge_rate=cfg.get('building_max_discharge_rate'),
+        irradiance_profile=irradiance_profile
     )
 
     # Price profile: list → dict
@@ -117,8 +139,18 @@ def run_multi_ev_v2g_simulation(cfg: dict):
     last_ev_departure = max(ev_cfg['target_time'] for ev_cfg in evs)
     end_hour = min(cfg.get('simulation_end', duration - 1), last_ev_departure)
 
+    # Track building consumption for display
+    results['building_consumption'] = []
+    results['building_solar'] = []
+    
     for hour in range(start_hour, end_hour + 1):
         results['hours'].append(hour)
+        
+        # Record building energy for this hour (same for all methods)
+        building_consumption = building.energy_consumption_profile[hour % len(building.energy_consumption_profile)]
+        building_solar = building.renewable_energy_profile[hour % len(building.renewable_energy_profile)]
+        results['building_consumption'].append(building_consumption)
+        results['building_solar'].append(building_solar)
 
         for name, func in methods.items():
             # Reset system for each method to avoid interference
@@ -183,20 +215,30 @@ def visualise_multi_ev_v2g(results: dict, cfg: dict, evs: list, system):
     ax1.set_ylim(0, 1)
     ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.0%}'))
 
-    # 2. Grid usage vs capacity
+    # 2. Grid usage vs capacity (Total = Building net + EV charging)
     ax2 = fig.add_subplot(gs[1])
     capacity = [cfg['grid_capacity_per_hour'].get(h, float('inf')) for h in hours]
-
+    
+    # Building net consumption (consumption - solar production)
+    building_net = [max(0, results['building_consumption'][i] - results['building_solar'][i]) 
+                    for i in range(len(hours))]
+    
+    # Plot building baseline
+    ax2.fill_between(hours, 0, building_net, alpha=0.3, color='gray', label='Building Net')
+    
     for name, color in colors.items():
         if name not in results or 'grid_usage' not in results[name]:
             continue
-        usage = results[name]['grid_usage']
-        ax2.plot(hours, usage, label=name.upper(), color=color, marker='o', markersize=4, lw=2)
+        ev_usage = results[name]['grid_usage']
+        # Total grid = building net + EV charging
+        total_usage = [building_net[i] + ev_usage[i] for i in range(len(hours))]
+        ax2.plot(hours, total_usage, label=f'{name.upper()} (Total)', color=color, marker='o', markersize=4, lw=2)
+        ax2.plot(hours, ev_usage, label=f'{name.upper()} (EV only)', color=color, linestyle=':', lw=1.5, alpha=0.7)
 
     ax2.plot(hours, capacity, 'k--', lw=2.5, label='Grid Capacity', alpha=0.8)
     ax2.set_ylabel('Grid Power (kW)', fontsize=12)
-    ax2.set_title('Hourly Grid Consumption', fontsize=14, fontweight='bold')
-    ax2.legend(loc='best', fontsize=10)
+    ax2.set_title('Hourly Grid Consumption (Building + EV Charging)', fontsize=14, fontweight='bold')
+    ax2.legend(loc='upper right', fontsize=8, ncol=2)
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(bottom=0)
 
@@ -240,8 +282,10 @@ def visualise_multi_ev_v2g(results: dict, cfg: dict, evs: list, system):
     plt.suptitle('Multi-EV V2G Charging Simulation – Grid & Revenue Optimization',
                  fontsize=16, fontweight='bold', y=0.995)
     plt.tight_layout(rect=[0, 0, 1, 0.99])
-    plt.savefig('simulation_results_multi_v2g.png', dpi=300, bbox_inches='tight')
-    print("\nVisualization saved as 'simulation_results_multi_v2g.png'")
+    import os
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'scripts', 'simulation_results_multi_v2g.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"\nVisualization saved as '{output_path}'")
     plt.close()
 
 

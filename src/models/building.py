@@ -6,7 +6,7 @@ from .battery import Battery
 class Building(Battery):
     def __init__(self, energy_consumption_profile, panel_area, panel_efficiency, peak_solar_irradiance,
                  battery_capacity, battery_efficiency, initial_soc, dod, 
-                 max_charge_rate=None, max_discharge_rate=None):
+                 max_charge_rate=None, max_discharge_rate=None, irradiance_profile=None):
         # Default charge/discharge rates to battery capacity if not specified
         if max_charge_rate is None:
             max_charge_rate = battery_capacity
@@ -27,21 +27,37 @@ class Building(Battery):
         self.energy_consumption_profile = energy_consumption_profile  # kWh/hour
         self.panel_area = panel_area  # m²
         self.panel_efficiency = panel_efficiency  # 0-1
-        self.peak_solar_irradiance = peak_solar_irradiance  # W/m²
+        self.peak_solar_irradiance = peak_solar_irradiance  # W/m² (used for synthetic profile)
+        self.irradiance_profile = irradiance_profile  # Real irradiance data (W/m²) if provided
         self.renewable_energy_profile = self.generate_renewable_profile()  # Generate PV profile
         self.v2g_energy = 0  # Track excess V2G energy not stored in battery (reset each hour)
 
     def generate_renewable_profile(self):
-        """Generate renewable energy production profile from photovoltaics (kWh/hour)."""
-        profile = [0] * 24  # Initialize 24-hour profile
-        for hour in range(24):
-            if 6 <= hour <= 18:
-                normalized = sin(pi * (hour - 6) / 12)
-                irradiance = self.peak_solar_irradiance * normalized  # W/m²
+        """
+        Generate renewable energy production profile from photovoltaics (kWh/hour).
+        
+        If real irradiance data is provided (irradiance_profile), uses that.
+        Otherwise, generates synthetic sinusoidal profile using peak_solar_irradiance.
+        """
+        profile = [0] * 24
+        
+        if self.irradiance_profile is not None:
+            # Use real irradiance data from PVGIS or similar source
+            for hour in range(24):
+                irradiance = self.irradiance_profile[hour % len(self.irradiance_profile)]  # W/m²
                 power_kw = (self.panel_area * irradiance * self.panel_efficiency) / 1000  # kW
                 profile[hour] = power_kw  # kWh for the hour
-            else:
-                profile[hour] = 0  # No production at night
+        else:
+            # Generate synthetic sinusoidal profile
+            for hour in range(24):
+                if 6 <= hour <= 18:
+                    normalized = sin(pi * (hour - 6) / 12)
+                    irradiance = self.peak_solar_irradiance * normalized  # W/m²
+                    power_kw = (self.panel_area * irradiance * self.panel_efficiency) / 1000  # kW
+                    profile[hour] = power_kw  # kWh for the hour
+                else:
+                    profile[hour] = 0  # No production at night
+        
         return profile
 
     def get_net_energy_demand(self, hour):

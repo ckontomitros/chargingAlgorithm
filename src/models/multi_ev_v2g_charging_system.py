@@ -31,13 +31,17 @@ class MultiEVV2GChargingSystem:
         """Simple algorithm for multiple EVs: Charge available EVs respecting grid constraints, using building renewables first."""
         total_cost = 0
         charged_evs = []
-        available_grid_capacity = self.grid_capacity_per_hour.get(hour, float('inf')) - self.grid_usage[hour]
-
-        # Compute building surplus directly (NO side effects!)
+        
+        # Compute building net demand (positive = needs grid, negative = surplus)
         consumption = self.building.energy_consumption_profile[hour % len(self.building.energy_consumption_profile)]
         production = self.building.renewable_energy_profile[hour % len(self.building.renewable_energy_profile)]
-        building_net = consumption - production
-        building_surplus = max(0, -building_net)
+        building_net = consumption - production  # Positive = building needs grid power
+        building_surplus = max(0, -building_net)  # Excess solar available for EVs
+        building_grid_draw = max(0, building_net)  # Building's grid consumption
+        
+        # Grid capacity available for EVs = total capacity - building consumption - existing EV usage
+        total_grid_capacity = self.grid_capacity_per_hour.get(hour, float('inf'))
+        available_grid_capacity = max(0, total_grid_capacity - building_grid_draw - self.grid_usage[hour])
         remaining_surplus = building_surplus
 
         for i, ev_config in enumerate(self.evs):
@@ -128,12 +132,17 @@ class MultiEVV2GChargingSystem:
             max_hour = max(ev_cfg['target_time'] for ev_cfg in self.evs)
 
             for h in range(min_hour, max_hour):
-                available_capacity = self.grid_capacity_per_hour.get(h, float('inf'))
-                remaining_capacity = available_capacity - episode_grid_usage[h]
-
-                # Track building energy as shared pool for this hour
-                building_energy = max(0, -self.building.get_net_energy_demand(h))
-                remaining_building_energy = building_energy
+                # Calculate building net demand (no side effects)
+                consumption = self.building.energy_consumption_profile[h % len(self.building.energy_consumption_profile)]
+                production = self.building.renewable_energy_profile[h % len(self.building.renewable_energy_profile)]
+                building_net = consumption - production
+                building_surplus = max(0, -building_net)  # Excess solar for EVs
+                building_grid_draw = max(0, building_net)  # Building's grid consumption
+                
+                # Grid capacity for EVs = total - building consumption - EV usage so far
+                total_capacity = self.grid_capacity_per_hour.get(h, float('inf'))
+                remaining_capacity = max(0, total_capacity - building_grid_draw - episode_grid_usage[h])
+                remaining_building_energy = building_surplus
 
                 # Process each EV
                 for ev_id, ev_state in enumerate(ev_states):
@@ -143,8 +152,8 @@ class MultiEVV2GChargingSystem:
                     # Discretize state
                     soc_bin = min(len(soc_bins) - 1,
                                   int((ev_state['soc'] - self.min_soc) / 0.1))
-                    grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
-                        if available_capacity > 0 else 0
+                    grid_bin = min(4, int(5 * remaining_capacity / total_capacity)) \
+                        if total_capacity > 0 else 0
 
                     state = (ev_id, soc_bin, h, grid_bin)
 
@@ -181,9 +190,18 @@ class MultiEVV2GChargingSystem:
                             )
 
                             if max_energy > 0:
-                                # Use remaining building energy (shared pool)
-                                energy_from_building = min(remaining_building_energy, max_energy)
-                                energy_from_grid = max_energy - energy_from_building
+                                # Calculate source allocation BEFORE applying efficiency
+                                energy_from_building_req = min(remaining_building_energy, max_energy)
+                                energy_from_grid_req = max_energy - energy_from_building_req
+                                
+                                # Apply battery efficiency (approximate - training uses simplified model)
+                                battery_eff = 0.95  # Match typical battery efficiency
+                                actual_charged = max_energy * battery_eff
+                                
+                                # Scale sources proportionally
+                                charge_ratio = actual_charged / max_energy if max_energy > 0 else 0
+                                energy_from_building = energy_from_building_req * charge_ratio
+                                energy_from_grid = energy_from_grid_req * charge_ratio
 
                                 # COST-CONSCIOUS: Full weight on grid costs
                                 reward = -energy_from_grid * current_price * 10
@@ -197,10 +215,10 @@ class MultiEVV2GChargingSystem:
                                 
                                 # Small bonus for progress toward target
                                 if ev_state['soc'] < ev_state['desired_soc']:
-                                    reward += 20 * (max_energy / ev_state['battery_cap'])
+                                    reward += 20 * (actual_charged / ev_state['battery_cap'])
 
-                                # Update state
-                                ev_state['soc'] += max_energy / ev_state['battery_cap']
+                                # Update state with efficiency-adjusted energy
+                                ev_state['soc'] += actual_charged / ev_state['battery_cap']
                                 episode_grid_usage[h] += energy_from_grid
                                 remaining_capacity -= energy_from_grid
                                 remaining_building_energy -= energy_from_building
@@ -259,8 +277,8 @@ class MultiEVV2GChargingSystem:
                     # Update Q-value
                     next_soc_bin = min(len(soc_bins) - 1,
                                        int((ev_state['soc'] - self.min_soc) / 0.1))
-                    next_grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
-                        if available_capacity > 0 else 0
+                    next_grid_bin = min(4, int(5 * remaining_capacity / total_capacity)) \
+                        if total_capacity > 0 else 0
                     next_state = (ev_id, next_soc_bin, min(h + 1, max_hour - 1), next_grid_bin)
 
                     best_next_q = np.max(Q[next_state])
@@ -271,12 +289,18 @@ class MultiEVV2GChargingSystem:
         # Execution phase: Make decisions for current hour
         total_benefit = 0
         actions_taken = []
-        available_capacity = self.grid_capacity_per_hour.get(hour, float('inf'))
-        remaining_capacity = available_capacity - self.grid_usage[hour]
-
-        # Calculate building surplus for current hour and track remaining
-        building_energy = max(0, -self.building.get_net_energy_demand(hour))
-        remaining_building_energy = building_energy
+        
+        # Calculate building net demand
+        consumption = self.building.energy_consumption_profile[hour % len(self.building.energy_consumption_profile)]
+        production = self.building.renewable_energy_profile[hour % len(self.building.renewable_energy_profile)]
+        building_net = consumption - production
+        building_surplus = max(0, -building_net)  # Excess solar for EVs
+        building_grid_draw = max(0, building_net)  # Building's grid consumption
+        
+        # Grid capacity available for EVs = total - building consumption - existing EV usage
+        total_capacity = self.grid_capacity_per_hour.get(hour, float('inf'))
+        remaining_capacity = max(0, total_capacity - building_grid_draw - self.grid_usage[hour])
+        remaining_building_energy = building_surplus
 
         for ev_id, ev_config in enumerate(self.evs):
             ev = ev_config['ev']
@@ -290,8 +314,8 @@ class MultiEVV2GChargingSystem:
             # Get current state
             soc_bin = min(len(soc_bins) - 1,
                           int((ev.soc - self.min_soc) / 0.1))
-            grid_bin = min(4, int(5 * remaining_capacity / available_capacity)) \
-                if available_capacity > 0 else 0
+            grid_bin = min(4, int(5 * remaining_capacity / total_capacity)) \
+                if total_capacity > 0 else 0
             state = (ev_id, soc_bin, hour, grid_bin)
 
             # Choose best action
@@ -312,9 +336,20 @@ class MultiEVV2GChargingSystem:
                 )
 
                 if max_energy > 0:
+                    # Calculate source allocation BEFORE charging (like SIMPLE)
+                    energy_from_building_requested = min(remaining_building_energy, max_energy)
+                    energy_from_grid_requested = max_energy - energy_from_building_requested
+                    
                     energy = ev.charge(max_energy)
-                    energy_from_building = min(remaining_building_energy, energy)
-                    energy_from_grid = energy - energy_from_building
+                    
+                    # Scale both sources proportionally by what was actually charged
+                    if max_energy > 0:
+                        charge_ratio = energy / max_energy
+                        energy_from_building = energy_from_building_requested * charge_ratio
+                        energy_from_grid = energy_from_grid_requested * charge_ratio
+                    else:
+                        energy_from_building = 0
+                        energy_from_grid = 0
 
                     cost = energy_from_grid * self.grid.get_price(hour)
                     total_benefit -= cost
