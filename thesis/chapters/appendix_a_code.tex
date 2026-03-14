@@ -1,0 +1,509 @@
+% ============================================================================
+% APPENDIX A: CODE IMPLEMENTATION
+% ============================================================================
+\chapter{Code Implementation}
+\label{app:code}
+
+This appendix provides key code excerpts from the simulation implementation. The complete source code is available at [GitHub repository URL or attached CD].
+
+\section{Project Structure}
+\label{app:structure}
+
+\begin{lstlisting}[language=bash,caption={Project directory structure}]
+ChargingAlgorithm/
+├── data/
+│   ├── multi_ev_config.yml           # Charge-only configuration
+│   ├── multi_ev_v2g_config.yml       # V2G configuration
+│   ├── office_single_building_timeseries.csv
+│   └── irradiance_pvgis.csv          # PVGIS solar data
+├── src/
+│   ├── models/
+│   │   ├── building.py               # Building model
+│   │   ├── electric_vehicle.py       # EV model
+│   │   ├── grid.py                   # Grid model
+│   │   ├── multi_ev_charging_system.py
+│   │   └── multi_ev_v2g_charging_system.py
+│   ├── simulation/
+│   │   ├── multi_ev_simulator.py
+│   │   └── multi_ev_v2g_simulator.py
+│   └── utils/
+│       ├── config.py                 # Configuration loader
+│       ├── data_generator.py         # Data loading utilities
+│       └── visualization.py          # Plotting functions
+├── scripts/
+│   └── run_simulation.py             # Main entry point
+└── tests/
+    └── [unit tests]
+\end{lstlisting}
+
+\section{Core Models}
+\label{app:core_models}
+
+\subsection{Building Model}
+
+\begin{lstlisting}[language=Python,caption={Building class (simplified)}]
+class Building:
+    def __init__(self, energy_consumption_profile, panel_area, 
+                 panel_efficiency, peak_solar_irradiance,
+                 battery_capacity, battery_efficiency, 
+                 initial_soc, dod, irradiance_profile=None):
+        self.energy_consumption_profile = energy_consumption_profile
+        self.panel_area = panel_area
+        self.panel_efficiency = panel_efficiency
+        
+        # Generate solar production profile
+        if irradiance_profile:
+            self.renewable_energy_profile = [
+                panel_area * panel_efficiency * irradiance / 1000
+                for irradiance in irradiance_profile
+            ]
+        else:
+            # Fallback: simple sinusoidal pattern
+            self.renewable_energy_profile = self._generate_solar_profile()
+    
+    def get_net_energy_demand(self, hour):
+        """Calculate net energy demand (positive = needs grid)"""
+        consumption = self.energy_consumption_profile[hour % 24]
+        production = self.renewable_energy_profile[hour % 24]
+        return consumption - production
+\end{lstlisting}
+
+\subsection{Electric Vehicle Model}
+
+\begin{lstlisting}[language=Python,caption={ElectricVehicle class (simplified)}]
+class ElectricVehicle:
+    def __init__(self, battery_capacity, initial_soc, 
+                 max_charge_rate, max_discharge_rate=0,
+                 energy_per_km=0.18, dod=0.9):
+        self.battery_capacity = battery_capacity
+        self.soc = initial_soc
+        self.max_charge_rate = max_charge_rate
+        self.max_discharge_rate = max_discharge_rate
+        self.min_soc = 1.0 - dod
+    
+    def charge(self, energy_kWh):
+        """Charge the EV battery"""
+        max_energy = min(
+            energy_kWh,
+            (1.0 - self.soc) * self.battery_capacity
+        )
+        actual_energy = max_energy * 0.95  # 95% efficiency
+        self.soc += actual_energy / self.battery_capacity
+        return actual_energy
+    
+    def discharge(self, energy_kWh):
+        """Discharge the EV battery (V2G)"""
+        max_energy = min(
+            energy_kWh,
+            (self.soc - self.min_soc) * self.battery_capacity
+        )
+        actual_energy = max_energy / 0.95  # Efficiency loss
+        self.soc -= max_energy / self.battery_capacity
+        return actual_energy
+\end{lstlisting}
+
+\section{Optimization Algorithms}
+\label{app:algorithms}
+
+\subsection{Simple Rule-Based Algorithm}
+
+\begin{lstlisting}[language=Python,caption={Simple charging algorithm}]
+def simple_charge_multi(self, hour):
+    """Simple algorithm: Use solar first, then grid"""
+    total_cost = 0
+    
+    # Calculate building energy surplus
+    consumption = self.building.energy_consumption_profile[hour]
+    production = self.building.renewable_energy_profile[hour]
+    building_surplus = max(0, production - consumption)
+    building_grid_draw = max(0, consumption - production)
+    
+    # Available grid capacity for EVs
+    total_capacity = self.grid_capacity_per_hour[hour]
+    available_capacity = total_capacity - building_grid_draw
+    
+    remaining_surplus = building_surplus
+    
+    # Charge each EV in sequence
+    for ev_config in self.evs:
+        ev = ev_config['ev']
+        if hour < ev_config['arrival_time'] or \
+           hour >= ev_config['target_time']:
+            continue
+        
+        # Calculate energy needed
+        energy_needed = min(
+            ev.max_charge_rate,
+            (ev_config['desired_soc'] - ev.soc) * ev.battery_capacity
+        )
+        
+        # Use surplus first, then grid
+        energy_from_surplus = min(energy_needed, remaining_surplus)
+        energy_from_grid = min(
+            energy_needed - energy_from_surplus,
+            available_capacity
+        )
+        
+        total_energy = energy_from_surplus + energy_from_grid
+        if total_energy > 0:
+            ev.charge(total_energy)
+            cost = energy_from_grid * self.grid.get_price(hour)
+            total_cost += cost
+            
+            # Update remaining resources
+            remaining_surplus -= energy_from_surplus
+            available_capacity -= energy_from_grid
+    
+    return True, -total_cost  # Return benefit (negative cost)
+\end{lstlisting}
+
+\subsection{Reinforcement Learning Algorithm}
+
+\begin{lstlisting}[language=Python,caption={Q-Learning algorithm (simplified)}]
+def rl_charge_multi(self, hour, episodes=2000, 
+                    learning_rate=0.1, discount_factor=1.0,
+                    epsilon=0.15):
+    """Multi-agent Q-learning for EV charging"""
+    
+    # Discretize state space
+    soc_bins = np.arange(0.2, 1.01, 0.1)
+    actions = ['charge', 'discharge', 'standby']  # V2G
+    
+    # Initialize Q-table
+    Q = defaultdict(lambda: np.zeros(len(actions)))
+    
+    # Training phase
+    for episode in range(episodes):
+        # Reset EV states
+        ev_states = [initialize_ev_state(cfg) for cfg in self.evs]
+        
+        # Simulate episode
+        for h in range(min_hour, max_hour):
+            for ev_id, ev_state in enumerate(ev_states):
+                # Discretize state
+                state = discretize_state(ev_state, h)
+                
+                # Epsilon-greedy action selection
+                if np.random.rand() < epsilon:
+                    action_idx = np.random.randint(len(actions))
+                else:
+                    action_idx = np.argmax(Q[state])
+                
+                # Execute action and calculate reward
+                reward = execute_action_and_get_reward(
+                    ev_state, actions[action_idx], h
+                )
+                
+                # Update Q-value
+                next_state = get_next_state(ev_state, h)
+                best_next_q = np.max(Q[next_state])
+                Q[state][action_idx] += learning_rate * (
+                    reward + discount_factor * best_next_q 
+                    - Q[state][action_idx]
+                )
+    
+    # Execution phase: Use learned policy
+    for ev_config in self.evs:
+        state = get_current_state(ev_config, hour)
+        action_idx = np.argmax(Q[state])
+        execute_action(ev_config, actions[action_idx])
+    
+    return True, total_benefit
+\end{lstlisting}
+
+\section{Simulation Orchestration}
+\label{app:simulation}
+
+\begin{lstlisting}[language=Python,caption={Main simulation loop}]
+def run_multi_ev_v2g_simulation(config):
+    """Run complete multi-EV V2G simulation"""
+    
+    # Initialize components
+    building = Building(...)
+    grid = Grid(...)
+    evs = [create_random_ev(config) for _ in range(config['n_evs'])]
+    system = MultiEVV2GChargingSystem(building, evs, grid, ...)
+    
+    # Define methods to compare
+    methods = {
+        'simple': system.simple_charge_multi,
+        'rl': lambda h: system.rl_charge_multi(h, episodes=15000),
+    }
+    
+    # Run simulation
+    results = {name: defaultdict(list) for name in methods}
+    
+    for hour in range(24):
+        for name, func in methods.items():
+            # Reset EVs to same initial state
+            reset_ev_states(evs, results[name], hour)
+            
+            # Execute algorithm
+            acted, benefit = func(hour)
+            
+            # Record results
+            results[name]['benefit'].append(benefit)
+            results[name]['ev_soc'].append([ev['ev'].soc for ev in evs])
+    
+    # Visualize and analyze
+    visualize_results(results, config)
+    
+    return results
+\end{lstlisting}
+
+\section{Configuration Management}
+\label{app:config}
+
+\subsection{Configuration File Format}
+
+\begin{lstlisting}[caption={Example configuration file (multi\_ev\_v2g\_config.yml)}]
+# Building Configuration
+panel_area: 150
+panel_efficiency: 0.20
+building_battery_capacity: 80
+building_battery_efficiency: 0.95
+
+# EV Fleet Configuration
+n_evs: 15
+ev_battery_capacity: 100
+ev_initial_soc_range: [0.2, 0.3]
+ev_desired_soc_range: [0.7, 0.8]
+ev_arrival_window: [6, 9]
+ev_target_window: [16, 24]
+max_charge_rate: 22
+max_discharge_rate: 22
+
+# Grid Configuration
+price_profile: [0.48, 0.48, 0.48, 0.48, ...]
+sell_price_profile: [0.38, 0.38, 0.38, 0.38, ...]
+grid_capacity_per_hour: [80, 80, 80, ...]
+
+# Algorithm Parameters
+rl_episodes: 15000
+rl_lr: 0.15
+rl_gamma: 1.0
+rl_epsilon: 0.10
+
+mpc_horizon: 8
+mpc_iterations: 60
+
+pso_particles: 40
+pso_iters: 60
+\end{lstlisting}
+
+\section{Data Loading Utilities}
+\label{app:data_loading}
+
+\begin{lstlisting}[language=Python,caption={PVGIS data loader}]
+def load_irradiance_pvgis(filepath, date_str):
+    """
+    Load PVGIS irradiance data for a specific date.
+    
+    Args:
+        filepath: Path to PVGIS CSV file
+        date_str: Date in format 'YYYYMMDD'
+    
+    Returns:
+        List of 24 hourly irradiance values (W/m²)
+    """
+    import pandas as pd
+    
+    df = pd.read_csv(filepath)
+    
+    # Filter for specific date
+    df['date'] = pd.to_datetime(df['time']).dt.strftime('%Y%m%d')
+    df_day = df[df['date'] == date_str]
+    
+    # Extract hourly irradiance
+    irradiance = df_day['G(i)'].values  # Global irradiance on inclined plane
+    
+    # Ensure 24 hours
+    if len(irradiance) < 24:
+        irradiance = np.pad(irradiance, (0, 24 - len(irradiance)))
+    
+    return irradiance[:24].tolist()
+\end{lstlisting}
+
+\section{Visualization Functions}
+\label{app:visualization}
+
+\begin{lstlisting}[language=Python,caption={Results visualization (simplified)}]
+def visualize_multi_ev_v2g(results, config, evs, system):
+    """Create comprehensive visualization of simulation results"""
+    
+    fig, axes = plt.subplots(4, 1, figsize=(16, 12))
+    
+    # Plot 1: EV SoC evolution
+    for method in ['simple', 'rl']:
+        socs = np.array(results[method]['ev_soc'])
+        avg_soc = socs.mean(axis=1)
+        axes[0].plot(results['hours'], avg_soc, 
+                    label=method.upper(), linewidth=2)
+    
+    axes[0].set_ylabel('Average SoC')
+    axes[0].set_title('EV Fleet State of Charge')
+    axes[0].legend()
+    axes[0].grid(True)
+    
+    # Plot 2: Grid usage
+    for method in ['simple', 'rl']:
+        axes[1].plot(results['hours'], 
+                    results[method]['grid_usage'],
+                    label=method.upper(), marker='o')
+    
+    # Plot grid capacity limit
+    capacity = [config['grid_capacity_per_hour'][h] 
+                for h in results['hours']]
+    axes[1].plot(results['hours'], capacity, 
+                'k--', label='Grid Capacity')
+    
+    axes[1].set_ylabel('Grid Power (kW)')
+    axes[1].set_title('Grid Power Consumption')
+    axes[1].legend()
+    axes[1].grid(True)
+    
+    # Plot 3: Hourly benefit
+    # [Similar plotting code...]
+    
+    # Plot 4: Cumulative benefit
+    # [Similar plotting code...]
+    
+    plt.tight_layout()
+    plt.savefig('simulation_results_multi_v2g.png', dpi=300)
+\end{lstlisting}
+
+\section{Usage Instructions}
+\label{app:usage}
+
+\subsection{Running Simulations}
+
+\begin{lstlisting}[language=bash,caption={Command line usage}]
+# Install dependencies
+pip install -r requirements.txt
+
+# Run charge-only simulation
+python scripts/run_simulation.py  # Set SIMULATION_TYPE = "multi_ev"
+
+# Run V2G simulation
+python scripts/run_simulation.py  # Set SIMULATION_TYPE = "multi_ev_v2g"
+
+# Run tests
+pytest tests/
+\end{lstlisting}
+
+\subsection{Modifying Parameters}
+
+To experiment with different scenarios:
+
+\begin{enumerate}
+    \item Edit configuration file: \texttt{data/multi\_ev\_v2g\_config.yml}
+    \item Modify parameters (fleet size, prices, capacities, etc.)
+    \item Run simulation: \texttt{python scripts/run\_simulation.py}
+    \item Results saved to: \texttt{scripts/simulation\_results\_*.png}
+\end{enumerate}
+
+\section{Dependencies}
+\label{app:dependencies}
+
+\begin{lstlisting}[caption={requirements.txt}]
+numpy>=1.21.0
+matplotlib>=3.4.0
+pyyaml>=5.4.0
+pandas>=1.3.0
+pytest>=7.0.0            # For testing
+\end{lstlisting}
+
+\section{Testing}
+\label{app:testing}
+
+\begin{lstlisting}[language=Python,caption={Example unit test}]
+import pytest
+from src.models.electric_vehicle import ElectricVehicle
+
+def test_ev_charging():
+    """Test EV charging functionality"""
+    ev = ElectricVehicle(
+        battery_capacity=100,
+        initial_soc=0.3,
+        max_charge_rate=22
+    )
+    
+    # Charge for 1 hour at max rate
+    energy = ev.charge(22)
+    
+    # Check energy charged (with efficiency)
+    assert abs(energy - 20.9) < 0.1  # 22 * 0.95
+    
+    # Check SoC increase
+    expected_soc = 0.3 + 20.9 / 100
+    assert abs(ev.soc - expected_soc) < 0.01
+
+def test_grid_capacity_constraint():
+    """Test that grid capacity is respected"""
+    # [Test code...]
+    pass
+
+def test_target_soc_achievement():
+    """Test that all EVs reach desired SoC"""
+    # [Test code...]
+    pass
+\end{lstlisting}
+
+\section{Performance Profiling}
+\label{app:profiling}
+
+\begin{lstlisting}[language=Python,caption={Algorithm timing comparison}]
+import time
+
+def benchmark_algorithms():
+    """Compare execution time of different algorithms"""
+    
+    algorithms = {
+        'simple': system.simple_charge_multi,
+        'rl': lambda h: system.rl_charge_multi(h, episodes=2000),
+        'mpc': lambda h: system.mpc_charge(h, horizon=6),
+        'pso': lambda h: system.pso_charge(h, n_particles=30),
+        'milp': system.milp_charge,
+    }
+    
+    results = {}
+    
+    for name, func in algorithms.items():
+        start = time.time()
+        
+        for hour in range(24):
+            func(hour)
+        
+        elapsed = time.time() - start
+        results[name] = elapsed
+        print(f"{name}: {elapsed:.2f} seconds")
+    
+    return results
+\end{lstlisting}
+
+\section{Code Availability}
+\label{app:availability}
+
+The complete source code for this thesis is available at:
+
+\begin{itemize}
+    \item \textbf{Repository:} [GitHub URL]
+    \item \textbf{License:} [Specify license, e.g., MIT, GPL]
+    \item \textbf{Documentation:} See \texttt{README.md} for detailed usage instructions
+    \item \textbf{Contact:} [Your email] for questions or collaboration
+\end{itemize}
+
+\section{Reproducibility}
+\label{app:reproducibility}
+
+To reproduce the results in this thesis:
+
+\begin{enumerate}
+    \item Clone the repository
+    \item Install dependencies: \texttt{pip install -r requirements.txt}
+    \item Download data files (included in repository)
+    \item Run: \texttt{python scripts/run\_simulation.py}
+    \item Results will be generated in \texttt{scripts/} folder
+\end{enumerate}
+
+\textbf{Note:} RL results may vary slightly due to random initialization. Use \texttt{np.random.seed(42)} for deterministic results.

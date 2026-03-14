@@ -1,0 +1,37 @@
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# Backup files
+*~
+*.bak
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Build directory (if using)
+build/
+
+# Keep the PDF in git (optional - comment out if you don't want to track it)
+# *.pdf

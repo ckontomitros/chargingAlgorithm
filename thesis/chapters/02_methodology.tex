@@ -1,0 +1,432 @@
+% ============================================================================
+% CHAPTER 2: METHODOLOGY
+% ============================================================================
+\chapter{Methodology}
+\label{ch:methodology}
+
+This chapter presents the mathematical models and algorithms used to simulate and optimize EV charging in office buildings. We describe the system components, optimization objectives, and the specific implementation of each intelligence level.
+
+\section{System Components}
+\label{sec:system_components}
+
+\subsection{Office Building Model}
+\label{subsec:building_model}
+
+The office building is characterized by its energy consumption and renewable generation profiles.
+
+\subsubsection{Energy Consumption}
+
+The building's hourly energy consumption profile $C_b(t)$ is derived from the ELMAS dataset (European Load Model for Aggregated Sectors), specifically the Office cluster (\#5) from \texttt{Time\_series\_18\_clusters.csv}.
+
+Let $L_t$ denote the hourly load of the Office cluster base series ($T = 8{,}736$ hours for year 2018) with annual energy:
+
+\begin{equation}
+E_{cluster} = \sum_{t=1}^{T} L_t
+\end{equation}
+
+To determine a representative single-building target, the per-customer annual energy is computed for each class $c$ belonging to the Office cluster:
+
+\begin{equation}
+e_c = \frac{E_c}{N_c}
+\end{equation}
+
+where $E_c$ is the annual energy and $N_c$ the number of customers in class $c$. The target annual energy is set to the 75th percentile of the per-customer distribution:
+
+\begin{equation}
+E_{target} = Q_{0.75}\!\left(\{e_c\}\right) = 58{,}831 \; \text{\kwh}
+\end{equation}
+
+The cluster profile is then scaled to match this target:
+
+\begin{equation}
+L_t^{scaled} = L_t \cdot \frac{E_{target}}{E_{cluster}}
+\end{equation}
+
+To introduce realistic stochastic variability, two multiplicative noise factors are applied---a daily factor $\alpha_d$ (constant within each day) and an hourly factor $\beta_t$:
+
+\begin{align}
+\alpha_d &\sim \mathcal{N}(1, \sigma_d^2), \quad \sigma_d = 0.08, \quad \alpha_d \in [0.7, 1.3] \\
+\beta_t &\sim \mathcal{N}(1, \sigma_h^2), \quad \sigma_h = 0.03, \quad \beta_t \in [0.9, 1.1]
+\end{align}
+
+The synthetic series before re-normalization:
+
+\begin{equation}
+L_t^{syn} = L_t^{scaled} \cdot \alpha_d(t) \cdot \beta_t
+\end{equation}
+
+Finally, the series is re-scaled to exactly preserve the target annual energy:
+
+\begin{equation}
+C_b(t) = L_t^{syn} \cdot \frac{E_{target}}{\sum_{t=1}^{T} L_t^{syn}}
+\label{eq:building_consumption}
+\end{equation}
+
+The resulting single-office profile has a mean load of 6.73~\kw{} and a peak load of 11.92~\kw.
+
+\subsubsection{Solar Photovoltaic System}
+
+The solar PV system generates electricity based on irradiance:
+
+\begin{equation}
+P_{solar}(t) = A_{panel} \cdot \eta_{panel} \cdot I(t)
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $A_{panel}$ = solar panel area (m²)
+    \item $\eta_{panel}$ = panel efficiency
+    \item $I(t)$ = solar irradiance at hour $t$ (W/m²)
+\end{itemize}
+
+\subsubsection{Building Battery Storage}
+
+The building includes a stationary battery with capacity $C$ and state of charge $\soc_b(t)$.
+
+The maximum discharge power at time $t$ is bounded by both the inverter rating and the available energy above the minimum SoC:
+
+\begin{equation}
+P_{dis,t} = \min\!\left( P_{max}, \; (\soc_{t-1} - \soc_{min}) \cdot \eta \right)
+\label{eq:battery_discharge_power}
+\end{equation}
+
+Similarly, the maximum charge power is limited by the inverter and the remaining capacity:
+
+\begin{equation}
+P_{ch,t} = \min\!\left( P_{max}, \; C - \soc_{t-1} \right)
+\label{eq:battery_charge_power}
+\end{equation}
+
+The state of charge evolves depending on whether the building has excess or missing energy. When excess solar energy is available, the battery charges:
+
+\begin{equation}
+\soc_t = \soc_{t-1} + \min\!\left( P_{ch,t}, \; E_{excess}(t) \right)
+\label{eq:soc_charge}
+\end{equation}
+
+When the building demand exceeds supply, the battery discharges:
+
+\begin{equation}
+\soc_t = \soc_{t-1} - \min\!\left( \frac{P_{dis,t}}{\eta}, \; \frac{E_{missing}(t)}{\eta} \right)
+\label{eq:soc_discharge}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $P_{max}$ = maximum charge/discharge power [\kw]
+    \item $C$ = battery capacity [\kwh]
+    \item $\soc_{min}$ = minimum allowable state of charge
+    \item $\eta$ = round-trip efficiency
+    \item $E_{excess}(t) = \max(0, \; P_{solar}(t) - C_b(t))$ = surplus solar energy
+    \item $E_{missing}(t) = \max(0, \; C_b(t) - P_{solar}(t))$ = energy deficit
+\end{itemize}
+
+Constraints:
+\begin{align}
+\soc_{min} &\leq \soc_t \leq C \\
+0 &\leq P_{ch,t} \leq P_{max} \\
+0 &\leq P_{dis,t} \leq P_{max}
+\end{align}
+
+\subsubsection{Net Energy Demand}
+
+The building's net energy demand (positive = needs grid, negative = surplus):
+
+\begin{equation}
+E_{net}^{building}(t) = C_b(t) - P_{solar}(t) - E_{discharge}^b(t) + E_{charge}^b(t)
+\end{equation}
+
+\subsection{Electric Vehicle Fleet Model}
+\label{subsec:ev_model}
+
+\subsubsection{Individual EV Characteristics}
+
+Each EV $i$ in the fleet is characterized by:
+
+\begin{itemize}
+    \item Battery capacity: $B_{cap}^{i}$ [\kwh]
+    \item State of charge: $\soc^i(t)$ [dimensionless, 0-1]
+    \item Maximum charge rate: $P_{max,charge}^{i}$ [\kw]
+    \item Maximum discharge rate: $P_{max,discharge}^{i}$ [\kw] (for V2G)
+    \item Arrival time: $t_{arrival}^{i}$ [hour]
+    \item Departure time: $t_{target}^{i}$ [hour]
+    \item Desired SoC: $\soc_{desired}^{i}$ [dimensionless]
+\end{itemize}
+
+\subsubsection{EV Battery Dynamics}
+
+The state of charge evolution for EV $i$:
+
+\begin{equation}
+\soc^i(t+1) = \soc^i(t) + \frac{\eta_{charge} \cdot E_{charge}^i(t) - E_{discharge}^i(t)/\eta_{discharge}}{B_{cap}^{i}}
+\end{equation}
+
+where $\eta_{charge}$ and $\eta_{discharge}$ are charging and discharging efficiencies (typically 0.95).
+
+\subsubsection{Constraints}
+
+Each EV must satisfy:
+
+\begin{align}
+\soc_{min} &\leq \soc^i(t) \leq 1.0 \quad \forall t \label{eq:soc_bounds} \\
+\soc^i(t_{target}^i) &\geq \soc_{desired}^i \label{eq:target_constraint} \\
+E_{charge}^i(t) &= 0 \quad \text{if } t < t_{arrival}^i \text{ or } t \geq t_{target}^i \label{eq:availability}
+\end{align}
+
+Constraint \eqref{eq:target_constraint} ensures that each EV reaches its desired charge level before departure.
+
+\subsection{Grid Model}
+\label{subsec:grid_model}
+
+\subsubsection{Dynamic Pricing}
+
+The grid uses time-of-use pricing:
+
+\begin{equation}
+\pi_{buy}(t) = \text{price\_profile}[t \bmod 24] \quad [\text{€/\kwh}]
+\end{equation}
+
+For V2G scenarios, the sell-back price:
+
+\begin{equation}
+\pi_{sell}(t) = \text{sell\_price\_profile}[t \bmod 24] \quad [\text{€/\kwh}]
+\end{equation}
+
+Typically, $\pi_{sell}(t) \leq \pi_{buy}(t)$ (80-90\% of purchase price).
+
+\subsubsection{Grid Capacity Constraint}
+
+The total grid power consumption is limited:
+
+\begin{equation}
+E_{grid}^{building}(t) + \sum_{i=1}^{N_{EV}} E_{grid}^{i}(t) \leq P_{grid,max}(t)
+\end{equation}
+
+where $P_{grid,max}(t)$ represents the hourly grid capacity limit.
+
+\section{Optimization Problem Formulation}
+\label{sec:optimization_problem}
+
+\subsection{Objective Function}
+
+The primary objective is to minimize the total daily electricity cost:
+
+\begin{equation}
+\min \sum_{t=0}^{T-1} \left[ \pi_{buy}(t) \cdot E_{grid}^{total}(t) - \pi_{sell}(t) \cdot E_{V2G}^{total}(t) \right]
+\label{eq:objective}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $E_{grid}^{total}(t)$ = total energy purchased from grid at hour $t$
+    \item $E_{V2G}^{total}(t)$ = total energy sold back to grid (V2G only)
+    \item $T$ = simulation duration (24 hours)
+\end{itemize}
+
+\subsection{Energy Balance}
+
+For each hour $t$, the energy balance must be satisfied:
+
+\begin{equation}
+C_b(t) + \sum_{i=1}^{N_{EV}} E_{charge}^i(t) = P_{solar}(t) + E_{grid}^{total}(t) + \sum_{i=1}^{N_{EV}} E_{discharge}^i(t)
+\end{equation}
+
+\section{Level 0: Baseline (Uncontrolled Charging)}
+\label{sec:level0_model}
+
+\subsection{Algorithm Description}
+
+In the baseline scenario, each EV charges at maximum rate immediately upon arrival:
+
+\begin{equation}
+E_{charge}^i(t) = \begin{cases}
+P_{max,charge}^{i} & \text{if } t_{arrival}^i \leq t < t_{target}^i \text{ and } \soc^i(t) < 1.0 \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\subsection{Mathematical Formulation}
+
+The total cost for uncontrolled charging:
+
+\begin{equation}
+Cost_{Level0} = \sum_{t=0}^{T-1} \pi_{buy}(t) \cdot \left[ \max(0, E_{net}^{building}(t)) + \sum_{i=1}^{N_{EV}} E_{charge}^i(t) \right]
+\end{equation}
+
+\textbf{Key Assumptions:}
+\begin{itemize}
+    \item No coordination between EVs
+    \item Grid capacity may be violated (requires infrastructure upgrades)
+    \item Solar energy used for building first, remainder for EVs if available
+\end{itemize}
+
+\section{Level 1: Simple Rule-Based Charging}
+\label{sec:level1_model}
+
+\subsection{Algorithm Description}
+
+The simple algorithm follows a priority-based heuristic:
+
+\begin{algorithm}[H]
+\caption{Simple Rule-Based Charging}
+\label{alg:simple}
+\begin{algorithmic}[1]
+\For{each hour $t$}
+    \State Calculate building surplus: $E_{surplus}(t) = \max(0, P_{solar}(t) - C_b(t))$
+    \State Calculate available grid capacity: $P_{available}(t) = P_{grid,max}(t) - \max(0, C_b(t) - P_{solar}(t))$
+    \State $E_{remaining} \gets E_{surplus}(t)$
+    \For{each EV $i$ (in order)}
+        \If{$t_{arrival}^i \leq t < t_{target}^i$ and $\soc^i(t) < \soc_{desired}^i$}
+            \State $E_{needed}^i = \min(P_{max,charge}^{i}, (\soc_{desired}^i - \soc^i(t)) \cdot B_{cap}^{i})$
+            \State $E_{from\_surplus} = \min(E_{needed}^i, E_{remaining})$
+            \State $E_{from\_grid} = \min(E_{needed}^i - E_{from\_surplus}, P_{available}(t))$
+            \State $E_{total} = E_{from\_surplus} + E_{from\_grid}$
+            \State Charge EV $i$ with $E_{total}$
+            \State Update $E_{remaining}$ and $P_{available}(t)$
+        \EndIf
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Mathematical Formulation}
+
+Energy allocation for EV $i$ at hour $t$:
+
+\begin{equation}
+E_{charge}^i(t) = \min\left( P_{max,charge}^{i}, \, (\soc_{desired}^i - \soc^i(t)) \cdot B_{cap}^{i}, \, E_{available}(t) \right)
+\end{equation}
+
+where $E_{available}(t)$ includes both building surplus and remaining grid capacity.
+
+\section{Level 2: Intelligent Optimization Algorithms}
+\label{sec:level2_models}
+
+\subsection{Reinforcement Learning (Q-Learning)}
+\label{subsec:rl_model}
+
+\subsubsection{State Space}
+
+The state representation for EV $i$ at hour $t$:
+
+\begin{equation}
+s^i(t) = (\text{EV\_id}, \, \soc_{bin}^i(t), \, t, \, \text{grid\_availability})
+\end{equation}
+
+where $\soc_{bin}^i(t)$ is the discretized SoC (bins of 0.1).
+
+\subsubsection{Action Space}
+
+For charge-only systems:
+\begin{equation}
+\mathcal{A} = \{\text{charge}, \text{standby}\}
+\end{equation}
+
+For V2G-enabled systems:
+\begin{equation}
+\mathcal{A}_{V2G} = \{\text{charge}, \text{discharge}, \text{standby}\}
+\end{equation}
+
+\subsubsection{Reward Function}
+
+The reward function balances multiple objectives:
+
+\begin{align}
+R(s,a,s') = &\, -\alpha_1 \cdot E_{grid}^i(t) \cdot \pi_{buy}(t) \quad \text{(minimize grid cost)} \nonumber \\
+            &\, +\alpha_2 \cdot E_{solar}^i(t) \quad \text{(maximize solar usage)} \nonumber \\
+            &\, +\alpha_3 \cdot \mathbb{1}[\soc^i(t_{target}^i) \geq \soc_{desired}^i] \quad \text{(target achievement)} \nonumber \\
+            &\, -\alpha_4 \cdot \max(0, \soc_{desired}^i - \soc^i(t_{target}^i)) \quad \text{(penalty for shortfall)} \nonumber \\
+            &\, -\alpha_5 \cdot \mathbb{1}[\soc^i(t) < \soc_{min}] \quad \text{(constraint violation)}
+\end{align}
+
+where $\alpha_1, \ldots, \alpha_5$ are weighting coefficients.
+
+\subsubsection{Q-Learning Update Rule}
+
+The Q-value is updated using the temporal difference method:
+
+\begin{equation}
+Q(s,a) \leftarrow Q(s,a) + \alpha \left[ R(s,a,s') + \gamma \max_{a'} Q(s',a') - Q(s,a) \right]
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\alpha$ = learning rate (0.1-0.15)
+    \item $\gamma$ = discount factor (0.95-1.0)
+    \item $s'$ = next state after taking action $a$ in state $s$
+\end{itemize}
+
+\subsubsection{Policy Execution}
+
+After training, the policy selects actions greedily:
+
+\begin{equation}
+a^*(s) = \arg\max_{a \in \mathcal{A}} Q(s,a)
+\end{equation}
+
+\section{Level 3: Vehicle-to-Grid (V2G)}
+\label{sec:level3_model}
+
+\subsection{Bidirectional Energy Flow}
+
+V2G extends the optimization problem to include discharge decisions:
+
+\begin{equation}
+E_{net}^i(t) = E_{charge}^i(t) - E_{discharge}^i(t)
+\end{equation}
+
+\subsection{V2G Constraints}
+
+Additional constraints for V2G:
+\begin{align}
+E_{discharge}^i(t) &\leq (\soc^i(t) - \soc_{desired}^i) \cdot B_{cap}^{i} \quad \text{(preserve target SoC)} \\
+E_{charge}^i(t) \cdot E_{discharge}^i(t) &= 0 \quad \text{(no simultaneous charge/discharge)}
+\end{align}
+
+\subsection{Revenue Calculation}
+
+Total benefit with V2G:
+
+\begin{equation}
+\text{Benefit}_{V2G} = -\sum_{t=0}^{T-1} \left[ \pi_{buy}(t) \cdot E_{grid}^{total}(t) - \pi_{sell}(t) \cdot \sum_{i=1}^{N_{EV}} E_{discharge}^i(t) \right]
+\end{equation}
+
+Positive benefit indicates net revenue or cost savings.
+
+\subsection{V2G Integration with Algorithms}
+
+The Q-Learning algorithm is extended to handle V2G by:
+\begin{enumerate}
+    \item Expanding action space to include discharge
+    \item Modifying reward/cost functions to include sell-back revenue
+    \item Adding discharge constraints to preserve mobility requirements
+\end{enumerate}
+
+\section{Key Assumptions and Limitations}
+\label{sec:assumptions}
+
+\subsection{Assumptions}
+
+\begin{enumerate}
+    \item \textbf{Perfect Forecasting:} Solar production and building consumption are known in advance
+    \item \textbf{Deterministic Arrivals:} EV arrival/departure times are fixed (within random windows)
+    \item \textbf{No Battery Degradation:} Charging/discharging cycles do not degrade battery capacity
+    \item \textbf{Fixed Efficiency:} Battery charging efficiency is constant at 95\%
+    \item \textbf{Ideal Grid Connection:} No transmission losses or power quality issues
+    \item \textbf{Price-Taker:} EV charging does not influence electricity prices
+\end{enumerate}
+
+\subsection{Limitations}
+
+\begin{enumerate}
+    \item Simplified battery model (linear SoC dynamics)
+    \item No modeling of battery thermal effects
+    \item Single-day simulation (no multi-day patterns)
+    \item No consideration of user preferences or comfort
+    \item Computational complexity not analyzed in detail
+\end{enumerate}
+
+\section{Summary}
+\label{sec:methodology_summary}
+
+This chapter presented the mathematical framework for modeling and optimizing EV charging in office buildings across multiple intelligence levels. The models range from uncontrolled charging (Level 0) through simple rule-based heuristics (Level 1) and Q-Learning-based optimization (Level 2) to V2G-enabled smart charging (Level 3). The next chapter describes the specific case study and data sources used for evaluation.

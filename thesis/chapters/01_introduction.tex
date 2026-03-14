@@ -1,0 +1,160 @@
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background and Motivation}
+\label{sec:background}
+
+The global transition toward sustainable transportation has accelerated the adoption of electric vehicles (EVs). As EV penetration increases, workplace charging infrastructure in office buildings becomes increasingly important. However, uncontrolled charging can create significant challenges:
+
+\begin{itemize}
+    \item Peak demand stress on the electrical grid
+    \item High electricity costs during peak hours
+    \item Underutilization of on-site renewable energy generation
+    \item Grid capacity constraints and potential infrastructure upgrades
+\end{itemize}
+
+Smart charging systems offer a solution by intelligently coordinating EV charging with building energy consumption, renewable energy production, and dynamic electricity pricing. Office buildings present an ideal use case due to predictable occupancy patterns and potential for solar photovoltaic (PV) integration.
+
+\section{Smart Charging Levels}
+\label{sec:smart_charging_levels}
+
+This thesis investigates multiple levels of charging intelligence, each building upon the previous:
+
+\subsection{Level 0: Baseline (Uncontrolled Charging)}
+\label{subsec:level0}
+
+EVs charge immediately upon arrival at maximum available rate without any optimization or coordination. This represents the current common practice and serves as the baseline for comparison.
+
+\textbf{Characteristics:}
+\begin{itemize}
+    \item No intelligence or optimization
+    \item Maximum charging rate whenever connected
+    \item No consideration of electricity prices or renewable availability
+    \item Simple implementation but potentially high costs
+\end{itemize}
+
+\subsection{Level 1: Simple Rule-Based Charging}
+\label{subsec:level1}
+
+Basic heuristic algorithms that follow predefined rules for charging decisions.
+
+\textbf{Characteristics:}
+\begin{itemize}
+    \item Priority-based allocation (first-come, first-served)
+    \item Preferential use of building solar surplus
+    \item Respect for grid capacity constraints
+    \item Low computational requirements
+    \item Predictable behavior
+\end{itemize}
+
+\subsection{Level 2: Intelligent Optimization}
+\label{subsec:level2}
+
+Advanced optimization algorithms that learn or compute optimal charging schedules:
+
+\begin{itemize}
+    \item \textbf{Reinforcement Learning (RL):} Q-learning algorithm that learns optimal charging policies through trial and error interaction with the environment
+\end{itemize}
+
+\subsection{Level 3: Vehicle-to-Grid (V2G)}
+\label{subsec:level3}
+
+Bidirectional energy flow enabling EVs to discharge energy back to the building/grid during high-demand or high-price periods.
+
+\textbf{Characteristics:}
+\begin{itemize}
+    \item Bidirectional charging infrastructure
+    \item Revenue generation from energy arbitrage
+    \item Grid services and demand response capability
+    \item Additional constraints to preserve EV battery and ensure mobility needs
+\end{itemize}
+
+\section{Role of Renewable Energy}
+\label{sec:renewable_energy}
+
+Solar photovoltaic systems on office buildings can significantly reduce charging costs and grid dependence. Key considerations include:
+
+\begin{itemize}
+    \item Temporal alignment: Solar production peaks during midday when many EVs are parked
+    \item Cost reduction: On-site generation eliminates grid purchase costs
+    \item Grid relief: Reduces peak demand on distribution infrastructure
+    \item Sustainability: Lower carbon footprint for EV charging
+\end{itemize}
+
+The challenge lies in optimally coordinating EV charging with variable solar production while meeting mobility requirements and respecting grid constraints.
+
+\section{Benefits of Smart Charging in Office Buildings}
+\label{sec:benefits}
+
+Office buildings present unique advantages for smart EV charging:
+
+\begin{enumerate}
+    \item \textbf{Predictable Patterns:} Regular arrival/departure times enable better optimization
+    \item \textbf{Long Parking Duration:} 8-10 hour parking windows provide flexibility for scheduling
+    \item \textbf{Solar Alignment:} Peak solar production coincides with parking hours
+    \item \textbf{Centralized Management:} Single entity controls both building and charging infrastructure
+    \item \textbf{Economic Incentives:} Reduced operational costs benefit building owners/tenants
+\end{enumerate}
+
+\section{Literature Review}
+\label{sec:literature_review}
+
+\subsection{Smart EV Charging}
+\label{subsec:lit_smart_charging}
+
+[Review key papers on smart EV charging]
+
+Recent research has explored various approaches to EV charging optimization. \cite{example2020} demonstrated that coordinated charging can reduce costs by 30-40\% compared to uncontrolled charging...
+
+\subsection{Optimization Algorithms}
+\label{subsec:lit_algorithms}
+
+[Review papers on RL for EV charging]
+
+Reinforcement learning has shown promise in handling uncertain and dynamic environments \cite{example2021}...
+
+\subsection{Vehicle-to-Grid Technology}
+\label{subsec:lit_v2g}
+
+[Review V2G literature]
+
+V2G technology enables bidirectional energy flow, allowing EVs to provide grid services \cite{example2019}. Studies have shown potential revenue of €200-500 per vehicle annually...
+
+\subsection{Renewable Integration}
+\label{subsec:lit_renewable}
+
+[Review papers on solar+EV integration]
+
+Integration of solar PV with EV charging has been studied extensively \cite{example2023}. Key findings indicate that smart charging can increase solar self-consumption by 40-60\%...
+
+\section{Research Objectives}
+\label{sec:objectives}
+
+The primary objectives of this thesis are:
+
+\begin{enumerate}
+    \item \textbf{Model Development:} Develop mathematical models for different intelligence levels (0-3) of EV charging systems in office buildings
+    
+    \item \textbf{Algorithm Implementation:} Implement and compare optimization approaches: Simple rule-based and Reinforcement Learning (Q-Learning)
+    
+    \item \textbf{Performance Evaluation:} Quantify the economic benefits, renewable energy utilization, and constraint satisfaction for each approach
+    
+    \item \textbf{V2G Assessment:} Evaluate the additional value provided by Vehicle-to-Grid capability
+    
+    \item \textbf{Practical Recommendations:} Provide guidance on which intelligence level offers the best cost-benefit ratio for office building applications
+\end{enumerate}
+
+\section{Thesis Structure}
+\label{sec:structure}
+
+The remainder of this thesis is organized as follows:
+
+\begin{itemize}
+    \item \textbf{Chapter 2 - Methodology:} Presents the mathematical models and algorithms for each intelligence level
+    \item \textbf{Chapter 3 - Case Study:} Describes the office building scenario, data sources, and simulation setup
+    \item \textbf{Chapter 4 - Results:} Presents simulation results with comparative analysis
+    \item \textbf{Chapter 5 - Conclusions:} Summarizes findings and provides recommendations for future work
+\end{itemize}

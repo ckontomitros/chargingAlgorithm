@@ -1,0 +1,111 @@
+\documentclass[12pt,a4paper]{report}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{greek}
+
+% Math packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% Graphics and figures
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{caption}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+
+% Code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% References and citations
+\usepackage[style=ieee,backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+% Hyperlinks
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Page layout
+\usepackage[left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% Headers and footers
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+
+% Custom commands
+\newcommand{\soc}{\text{SoC}}
+\newcommand{\ev}{\text{EV}}
+\newcommand{\kwh}{\text{kWh}}
+\newcommand{\kw}{\text{kW}}
+
+% Code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    captionpos=b
+}
+
+% ============================================================================
+% DOCUMENT
+% ============================================================================
+\begin{document}
+
+% ----------------------------------------------------------------------------
+% FRONT MATTER
+% ----------------------------------------------------------------------------
+\include{chapters/00_frontmatter}
+
+% Table of contents
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ----------------------------------------------------------------------------
+% MAIN CONTENT
+% ----------------------------------------------------------------------------
+\include{chapters/01_introduction}
+\include{chapters/02_methodology}
+\include{chapters/03_case_study}
+\include{chapters/04_results}
+\include{chapters/05_conclusions}
+
+% ----------------------------------------------------------------------------
+% BACK MATTER
+% ----------------------------------------------------------------------------
+\printbibliography[heading=bibintoc,title={References}]
+
+\appendix
+\include{chapters/appendix_a_code}
+\include{chapters/appendix_b_data}
+
+\end{document}
