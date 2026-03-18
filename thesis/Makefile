@@ -15,7 +15,7 @@ LATEX_FLAGS = -interaction=nonstopmode -halt-on-error
 all: $(MAIN).pdf
 
 # Compile the main document
-$(MAIN).pdf: $(MAIN).tex chapters/*.tex references.bib
+$(MAIN).pdf: $(MAIN).tex chapters/*.tex references.bib $(wildcard figures/*.png)
 	@echo "First LaTeX pass..."
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
 	@echo "Running biber for bibliography..."

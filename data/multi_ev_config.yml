@@ -1,41 +1,107 @@
 # data/multi_ev_config.yml
-panel_area: 150
-panel_efficiency: 0.20
-peak_solar_irradiance: 1000
-building_battery_capacity: 80
-building_battery_efficiency: 0.95
-building_initial_soc: 0.5
-building_dod: 0.8
-duration: 24
-consumption_file: ../data/consumption_profiles.csv
+# Configuration for Multi-EV Charging Simulation (Charge-Only, No V2G)
 
-price_profile: [0.48, 0.48, 0.48, 0.48, 0.58, 0.60, 0.12, 0.15, 0.50, 0.25, 0.30, 0.30, 0.25, 0.1, 0.2, 0, 0.20, 0.25, 0.30, 0.30, 0.25, 0.20, 0.15, 0.10]
+# ============================================================================
+# Building Configuration
+# ============================================================================
+panel_area: 150                      # Solar panel area in m²
+panel_efficiency: 0.20               # Solar panel efficiency (20%)
+peak_solar_irradiance: 1000          # Peak solar irradiance in W/m² (fallback if no PVGIS data)
+building_battery_capacity: 80        # Building battery capacity in kWh
+building_battery_efficiency: 0.95    # Building battery efficiency (95%)
+building_initial_soc: 0.5            # Initial state of charge (50%)
+building_dod: 0.8                    # Depth of discharge limit (80%)
+building_max_charge_rate: 50         # Building battery max charge rate in kW
+building_max_discharge_rate: 50      # Building battery max discharge rate in kW
+duration: 24                         # Simulation duration in hours
+consumption_file: data/office_single_building_timeseries.csv
 
-grid_capacity_per_hour: [250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250]
+# Solar Irradiance Data (PVGIS)
+irradiance_file: data/irradiance_pvgis.csv   # Path to PVGIS irradiance data
+irradiance_date: "20180312"                   # Simulation date: March 12, 2018
 
-n_evs: 20
-ev_battery_capacity: 100
-ev_initial_soc_range: [0.6, 0.7]
-ev_desired_soc_range: [0.9, 0.95]
-ev_arrival_window: [6, 8]
-ev_target_window: [14, 20]
-max_charge_rate: 20.0
-max_discharge_rate: 20.0
-energy_per_km: 0.18
-ev_dod: 0.9
-usage_stats: null
+# ============================================================================
+# Grid Configuration
+# ============================================================================
+# Day-ahead wholesale electricity prices (€/kWh) - France (EPEX SPOT)
+# Source: ENTSO-E Transparency Platform / Fraunhofer ISE Energy-Charts API
+# Date: March 12, 2018. Original data in EUR/MWh, converted to EUR/kWh (÷1000)
+price_profile: [
+  0.0285, 0.0198, 0.0120, 0.0096,  # 00:00-03:00 - Night (off-peak)
+  0.0190, 0.0420, 0.0447, 0.0483,  # 04:00-07:00 - Morning ramp-up
+  0.0481, 0.0460, 0.0444, 0.0450,  # 08:00-11:00 - Business hours
+  0.0415, 0.0384, 0.0372, 0.0376,  # 12:00-15:00 - Midday
+  0.0422, 0.0502, 0.0620, 0.0552,  # 16:00-19:00 - Evening peak
+  0.0432, 0.0412, 0.0368, 0.0350   # 20:00-23:00 - Night (falling)
+]
 
-simulation_start: 2
-simulation_end: 20
-min_soc: 0.2
+# Grid capacity constraint (kW) - maximum power available for EV charging
+grid_capacity_per_hour: [
+  80, 80, 80, 80,     # 00:00-03:00 - Night (low demand)
+  80, 80, 80, 80,     # 04:00-07:00 - Morning (rising)
+  80, 80, 80, 80,     # 08:00-11:00 - Business hours
+  80, 80, 80, 80,     # 12:00-15:00 - Midday
+  80, 80, 80, 80,     # 16:00-19:00 - Evening peak
+  80, 80, 80, 80      # 20:00-23:00 - Night
+]
 
-rl_episodes: 10000
-rl_lr: 0.1
-rl_gamma: 1
-rl_epsilon: 0.3
+# ============================================================================
+# EV Fleet Configuration
+# ============================================================================
+n_evs: 15                            # Number of electric vehicles
+ev_battery_capacity: 100             # EV battery capacity in kWh (e.g., Tesla Model 3)
+ev_initial_soc_range: [0.2, 0.3]     # Random initial SoC range (20%-30%)
+ev_desired_soc_range: [0.7, 0.8]     # Random desired SoC range (70%-80%)
+ev_arrival_window: [6, 9]            # EVs arrive between 6:00-9:00 AM
+ev_target_window: [16, 24]           # EVs must be ready between 4:00-8:00 PM
+max_charge_rate: 22                  # Maximum charging rate in kW (Level 2 charger)
+max_discharge_rate: 22               # Maximum discharge rate in kW (not used in charge-only mode)
+energy_per_km: 0.18                  # Energy consumption per km
+ev_dod: 0.9                          # EV depth of discharge limit (90%)
+usage_stats: null                    # No driving pattern (can add later)
 
-pso_particles: 40
-pso_iters: 60
-pso_w: 0.7
-pso_c1: 1.5
-pso_c2: 1.5
+# ============================================================================
+# Simulation Time Window
+# ============================================================================
+simulation_start: 0                  # Start hour (midnight)
+simulation_end: 23                   # End hour (11 PM)
+min_soc: 0.2                         # Minimum SoC to prevent battery degradation
+
+# ============================================================================
+# Algorithm Parameters
+# ============================================================================
+
+# Reinforcement Learning (Q-Learning)
+rl_episodes: 15000                   # Training episodes
+rl_lr: 0.15                          # Learning rate
+rl_gamma: 1.0                        # Discount factor (1.0 = consider future equally)
+rl_epsilon: 0.10                     # Exploration rate (10%)
+
+# Model Predictive Control (MPC)
+mpc_horizon: 8                       # Prediction horizon in hours
+mpc_iterations: 60                   # Optimization iterations
+
+# Particle Swarm Optimization (PSO)
+pso_particles: 40                    # Number of particles in swarm
+pso_iters: 60                        # PSO iterations
+pso_w: 0.7                           # Inertia weight
+pso_c1: 1.5                          # Cognitive parameter
+pso_c2: 1.5                          # Social parameter
+
+# Deep Q-Network (DQN) - if using
+dqn_episodes: 1000                   # Training episodes
+dqn_batch_size: 32                   # Batch size for experience replay
+dqn_gamma: 0.95                      # Discount factor
+dqn_epsilon_start: 1.0               # Initial exploration rate
+dqn_epsilon_end: 0.01                # Final exploration rate
+dqn_epsilon_decay: 0.995             # Epsilon decay rate
+
+# ============================================================================
+# Notes
+# ============================================================================
+# - Charge-only mode: EVs can only charge, no Vehicle-to-Grid discharge
+# - Grid capacity represents transformer/distribution limits
+# - EVs must reach desired_soc by target_time for daily driving needs
+# - min_soc prevents excessive battery degradation
+# - Arrival/target windows simulate workplace/home charging scenarios
+# - Building surplus solar energy is used first before drawing from grid

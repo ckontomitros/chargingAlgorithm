@@ -19,15 +19,25 @@ This appendix provides detailed data tables and additional results that support 
 \toprule
 \textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
 \midrule
-\multicolumn{3}{l}{\textit{Solar PV System:}} \\
-\quad Panel area & 150 & m² \\
-\quad Panel efficiency & 20 & \% \\
+\multicolumn{3}{l}{\textit{Solar PV System (JA Solar DeepBlue 3.0 Pro~\cite{ja_solar_deepblue}):}} \\
+\quad Reference module & JAM54S31-405/MR & --- \\
+\quad Module rated power & 405 & Wp \\
+\quad Module efficiency (STC) & 20.7 & \% \\
+\quad Cell type & Mono PERC half-cut & --- \\
+\quad Module dimensions & 1722 $\times$ 1134 $\times$ 30 & mm \\
+\quad Number of modules & 74 & --- \\
+\quad Total panel area & $\approx$\,150 & m² \\
+\quad System efficiency (sim.) & 20 & \% \\
 \quad Peak solar irradiance & 1000 & W/m² \\
 \quad Peak power output & 30 & kW \\
 \midrule
-\multicolumn{3}{l}{\textit{Building Battery:}} \\
-\quad Capacity & 80 & kWh \\
-\quad Efficiency & 95 & \% \\
+\multicolumn{3}{l}{\textit{Building Battery (BYD Battery-Box Premium HVM~\cite{byd_batterybox}):}} \\
+\quad Chemistry & LiFePO\textsubscript{4} (LFP) & --- \\
+\quad Module capacity & 2.76 & kWh \\
+\quad Configuration & 4 $\times$ HVM~19.3 (7 modules each) & --- \\
+\quad System capacity & $\approx$\,80 & kWh \\
+\quad Round-trip efficiency & $\geq$\,96 (certified HTW Berlin) & \% \\
+\quad Simulation efficiency & 95 & \% \\
 \quad Initial SoC & 50 & \% \\
 \quad Depth of discharge limit & 80 & \% \\
 \quad Max charge rate & 50 & kW \\
@@ -71,40 +81,42 @@ Minimum SoC & 20 & \% \\
 
 \subsection{Electricity Price Profile}
 
+Table~\ref{tab:app_prices} presents the complete hourly day-ahead electricity prices for the French bidding zone on March~12, 2018, as retrieved from the ENTSO-E Transparency Platform~\cite{entsoe_transparency} and cross-validated via the Fraunhofer ISE Energy-Charts API~\cite{energy_charts}. Sell-back prices for the V2G scenario are set at 80\% of the purchase price.
+
 \begin{table}[H]
 \centering
-\caption{Hourly electricity prices (purchase and sell-back)}
+\caption{Hourly day-ahead electricity prices --- France (EPEX SPOT), March 12, 2018}
 \label{tab:app_prices}
-\begin{tabular}{@{}cccc@{}}
+\begin{tabular}{@{}ccccc@{}}
 \toprule
-\textbf{Hour} & \textbf{Purchase (€/kWh)} & \textbf{Sell (€/kWh)} & \textbf{Spread (\%)} \\
+\textbf{Hour} & \textbf{EUR/MWh} & \textbf{Purchase (€/kWh)} & \textbf{Sell (€/kWh)} & \textbf{Spread (\%)} \\
 \midrule
-00:00 & 0.48 & 0.38 & 79\% \\
-01:00 & 0.48 & 0.38 & 79\% \\
-02:00 & 0.48 & 0.38 & 79\% \\
-03:00 & 0.48 & 0.38 & 79\% \\
-04:00 & 0.58 & 0.48 & 83\% \\
-05:00 & 0.60 & 0.50 & 83\% \\
-06:00 & 0.65 & 0.55 & 85\% \\
-07:00 & 0.70 & 0.60 & 86\% \\
-08:00 & 0.50 & 0.40 & 80\% \\
-09:00 & 0.45 & 0.35 & 78\% \\
-10:00 & 0.40 & 0.30 & 75\% \\
-11:00 & 0.35 & 0.25 & 71\% \\
-12:00 & 0.30 & 0.20 & 67\% \\
-13:00 & 0.25 & 0.15 & 60\% \\
-14:00 & 0.20 & 0.12 & 60\% \\
-15:00 & 0.18 & 0.10 & 56\% \\
-16:00 & 0.25 & 0.20 & 80\% \\
-17:00 & 0.35 & 0.30 & 86\% \\
-18:00 & 0.45 & 0.40 & 89\% \\
-19:00 & 0.55 & 0.50 & 91\% \\
-20:00 & 0.50 & 0.45 & 90\% \\
-21:00 & 0.45 & 0.40 & 89\% \\
-22:00 & 0.35 & 0.30 & 86\% \\
-23:00 & 0.30 & 0.25 & 83\% \\
+00:00 & 28.46 & 0.0285 & 0.0228 & 80\% \\
+01:00 & 19.80 & 0.0198 & 0.0158 & 80\% \\
+02:00 & 12.00 & 0.0120 & 0.0096 & 80\% \\
+03:00 &  9.56 & 0.0096 & 0.0076 & 80\% \\
+04:00 & 19.04 & 0.0190 & 0.0152 & 80\% \\
+05:00 & 42.01 & 0.0420 & 0.0336 & 80\% \\
+06:00 & 44.66 & 0.0447 & 0.0357 & 80\% \\
+07:00 & 48.34 & 0.0483 & 0.0387 & 80\% \\
+08:00 & 48.05 & 0.0481 & 0.0384 & 80\% \\
+09:00 & 46.02 & 0.0460 & 0.0368 & 80\% \\
+10:00 & 44.41 & 0.0444 & 0.0355 & 80\% \\
+11:00 & 45.00 & 0.0450 & 0.0360 & 80\% \\
+12:00 & 41.50 & 0.0415 & 0.0332 & 80\% \\
+13:00 & 38.38 & 0.0384 & 0.0307 & 80\% \\
+14:00 & 37.24 & 0.0372 & 0.0298 & 80\% \\
+15:00 & 37.61 & 0.0376 & 0.0301 & 80\% \\
+16:00 & 42.23 & 0.0422 & 0.0338 & 80\% \\
+17:00 & 50.24 & 0.0502 & 0.0402 & 80\% \\
+18:00 & 62.00 & 0.0620 & 0.0496 & 80\% \\
+19:00 & 55.23 & 0.0552 & 0.0442 & 80\% \\
+20:00 & 43.23 & 0.0432 & 0.0346 & 80\% \\
+21:00 & 41.23 & 0.0412 & 0.0330 & 80\% \\
+22:00 & 36.81 & 0.0368 & 0.0294 & 80\% \\
+23:00 & 35.04 & 0.0350 & 0.0280 & 80\% \\
 \midrule
-\textbf{Average} & \textbf{0.41} & \textbf{0.33} & \textbf{79\%} \\
+\textbf{Average} & \textbf{38.67} & \textbf{0.0387} & \textbf{0.0309} & \textbf{80\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -119,32 +131,32 @@ Minimum SoC & 20 & \% \\
 \toprule
 \textbf{Hour} & \textbf{Consumption (kW)} & \textbf{Solar Production (kW)} & \textbf{Net Demand (kW)} \\
 \midrule
-00:00 & [X.X] & 0.0 & [X.X] \\
-01:00 & [X.X] & 0.0 & [X.X] \\
-02:00 & [X.X] & 0.0 & [X.X] \\
-03:00 & [X.X] & 0.0 & [X.X] \\
-04:00 & [X.X] & 0.0 & [X.X] \\
-05:00 & [X.X] & [X.X] & [X.X] \\
-06:00 & [X.X] & [X.X] & [X.X] \\
-07:00 & [X.X] & [X.X] & [X.X] \\
-08:00 & [X.X] & [X.X] & [X.X] \\
-09:00 & [X.X] & [XX.X] & [X.X] \\
-10:00 & [X.X] & [XX.X] & [-X.X] \\
-11:00 & [X.X] & [XX.X] & [-X.X] \\
-12:00 & [X.X] & [XX.X] & [-XX.X] \\
-13:00 & [X.X] & [XX.X] & [-XX.X] \\
-14:00 & [X.X] & [XX.X] & [-X.X] \\
-15:00 & [X.X] & [XX.X] & [X.X] \\
-16:00 & [X.X] & [X.X] & [X.X] \\
-17:00 & [X.X] & [X.X] & [X.X] \\
-18:00 & [X.X] & [X.X] & [X.X] \\
-19:00 & [X.X] & 0.0 & [X.X] \\
-20:00 & [X.X] & 0.0 & [X.X] \\
-21:00 & [X.X] & 0.0 & [X.X] \\
-22:00 & [X.X] & 0.0 & [X.X] \\
-23:00 & [X.X] & 0.0 & [X.X] \\
+00:00 & 6.49 & 0.0 & 6.49 \\
+01:00 & 6.62 & 0.0 & 6.62 \\
+02:00 & 6.39 & 0.0 & 6.39 \\
+03:00 & 6.54 & 0.0 & 6.54 \\
+04:00 & 6.41 & 0.0 & 6.41 \\
+05:00 & 7.47 & 0.0 & 7.47 \\
+06:00 & 7.67 & 0.0 & 7.67 \\
+07:00 & 8.36 & 1.25 & 7.11 \\
+08:00 & 9.74 & 5.05 & 4.69 \\
+09:00 & 9.62 & 5.89 & 3.73 \\
+10:00 & 9.33 & 2.09 & 7.24 \\
+11:00 & 9.68 & 6.38 & 3.30 \\
+12:00 & 9.14 & 5.61 & 3.53 \\
+13:00 & 9.75 & 7.24 & 2.51 \\
+14:00 & 8.98 & 3.96 & 5.02 \\
+15:00 & 9.09 & 14.62 & $-$5.53 \\
+16:00 & 8.84 & 5.86 & 2.98 \\
+17:00 & 8.41 & 0.80 & 7.61 \\
+18:00 & 8.02 & 0.0 & 8.02 \\
+19:00 & 8.21 & 0.0 & 8.21 \\
+20:00 & 7.29 & 0.0 & 7.29 \\
+21:00 & 6.62 & 0.0 & 6.62 \\
+22:00 & 6.81 & 0.0 & 6.81 \\
+23:00 & 6.20 & 0.0 & 6.20 \\
 \midrule
-\textbf{Total} & \textbf{[XXX.X]} & \textbf{[XXX.X]} & --- \\
+\textbf{Total} & \textbf{191.7} & \textbf{58.8} & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -446,6 +458,81 @@ RL (Q-Learning) & [XXX.X] & [XX] & [XXX] & 1 \\
     \item Output file: \texttt{office\_single\_building\_timeseries.csv}
 \end{itemize}
 
+\subsection{Solar PV Module Reference}
+
+\textbf{Product:} JA Solar DeepBlue 3.0 Pro --- JAM54S31-405/MR~\cite{ja_solar_deepblue}
+
+\textbf{Key specifications:}
+\begin{table}[H]
+\centering
+\caption{JA Solar DeepBlue 3.0 Pro module specifications}
+\label{tab:app_ja_solar}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Rated power (Pmax, STC) & 405 & Wp \\
+Module efficiency & 20.7 & \% \\
+Cell type & Monocrystalline PERC & --- \\
+Cell configuration & 54 cells (half-cut) & --- \\
+Open-circuit voltage (Voc) & 37.20 & V \\
+Short-circuit current (Isc) & 13.86 & A \\
+Voltage at Pmax (Vmpp) & 31.10 & V \\
+Current at Pmax (Impp) & 13.02 & A \\
+Temperature coefficient (Pmax) & $-$0.35 & \%/°C \\
+Dimensions (H $\times$ W $\times$ D) & 1722 $\times$ 1134 $\times$ 30 & mm \\
+Module area & 1.953 & m\textsuperscript{2} \\
+Weight & 21.8 & kg \\
+Product warranty & 12 & years \\
+Linear power warranty & 25 & years \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{System sizing:}
+\begin{itemize}
+    \item Number of modules: 74 ($74 \times 405\,\text{Wp} = 29{,}970\,\text{W} \approx 30\,\text{kW}$)
+    \item Total module area: $74 \times 1.953\,\text{m}^2 = 144.5\,\text{m}^2 \approx 150\,\text{m}^2$
+    \item Simulation uses rounded values: 150~m\textsuperscript{2} panel area, 20\% system efficiency, 30~kW peak
+\end{itemize}
+
+\subsection{Building Battery Reference}
+
+\textbf{Product:} BYD Battery-Box Premium HVM~\cite{byd_batterybox}
+
+\textbf{Key specifications:}
+\begin{table}[H]
+\centering
+\caption{BYD Battery-Box Premium HVM specifications}
+\label{tab:app_byd_battery}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+\midrule
+Cell chemistry & LiFePO\textsubscript{4} (LFP, cobalt-free) & --- \\
+Module capacity & 2.76 & kWh \\
+Module nominal voltage & 51.2 & V \\
+Modules per tower & 3--8 & --- \\
+Tower capacity range & 8.28--22.08 & kWh \\
+Max parallel towers & 3 (per inverter) & --- \\
+Round-trip efficiency & $\geq$\,96 (HTW Berlin cert.) & \% \\
+Max output current & 50 & A \\
+Peak output current & 75 (3~s) & A \\
+Operating temperature & $-$10 to +50 & °C \\
+Protection rating & IP55 & --- \\
+Warranty & 10 & years \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{System sizing:}
+\begin{itemize}
+    \item Configuration: 4 $\times$ HVM~19.3 towers (7 modules each, multi-inverter setup)
+    \item Total capacity: $4 \times 19.32\,\text{kWh} = 77.3\,\text{kWh} \approx 80\,\text{kWh}$
+    \item Total max discharge power: $\approx$\,50~kW
+    \item Simulation uses a conservative 95\% round-trip efficiency (vs.\ manufacturer-rated $\geq$\,96\%) to account for system-level losses including inverter and BMS overhead
+\end{itemize}
+
 \subsection{PVGIS Irradiance Data}
 
 \textbf{Source:} European Commission Joint Research Centre - PVGIS
@@ -454,24 +541,38 @@ RL (Q-Learning) & [XXX.X] & [XX] & [XXX] & 1 \\
 
 \textbf{Parameters:}
 \begin{itemize}
-    \item Location: [Latitude, Longitude]
-    \item Database: PVGIS-SARAH2
-    \item Plane orientation: [Azimuth, Tilt]
+    \item Location: Paris, France --- 48.857°N, 2.352°E (elevation 32~m)
+    \item Database: PVGIS-SARAH3
+    \item Plane orientation: Azimuth 0° (south-facing), Tilt 37° (site-optimum)
     \item Date: March 12, 2018
-    \item Variables: Global irradiance on inclined plane $G(i)$
+    \item Variables: Global irradiance on inclined plane $G(i)$ [W/m\textsuperscript{2}], sun height $H_{sun}$ [°], air temperature $T_{2m}$ [°C], wind speed $WS_{10m}$ [m/s]
+    \item Peak irradiance (March 12): 487~W/m\textsuperscript{2} at 15:00
+    \item Daily irradiation (March 12): 1{,}958~Wh/m\textsuperscript{2}
 \end{itemize}
 
 \subsection{Electricity Price Data}
 
-\textbf{Source:} [Specify utility or market data source]
+\textbf{Source:} ENTSO-E Transparency Platform~\cite{entsoe_transparency}, cross-validated via Fraunhofer ISE Energy-Charts API~\cite{energy_charts}
+
+\textbf{Access:}
+\begin{itemize}
+    \item ENTSO-E Transparency Platform: \url{https://transparency.entsoe.eu/}
+    \item Energy-Charts API: \url{https://api.energy-charts.info/price?bzn=FR&start=2018-03-12T00:00&end=2018-03-12T23:59}
+\end{itemize}
 
 \textbf{Description:}
 \begin{itemize}
-    \item Market: [Country/Region]
-    \item Tariff type: Time-of-Use (TOU)
-    \item Date: [Reference period]
+    \item Market: EPEX SPOT -- French bidding zone (FR)~\cite{epex_spot}
+    \item Price type: Day-ahead wholesale market (SDAC auction clearing price)
+    \item Date: March 12, 2018
     \item Currency: EUR (€)
-    \item Notes: [Any adjustments or assumptions]
+    \item Original unit: EUR/MWh (converted to EUR/kWh by dividing by 1000)
+    \item Daily average: 38.67~EUR/MWh (0.039~EUR/kWh)
+    \item Daily range: 9.56--62.00~EUR/MWh
+    \item Minimum: 9.56~EUR/MWh at 03:00 (off-peak, nuclear baseload)
+    \item Maximum: 62.00~EUR/MWh at 18:00 (evening peak)
+    \item V2G sell-back price: 80\% of purchase price (accounts for grid fees, aggregator margin, and balancing costs)
+    \item License: CC BY 4.0 (Energy-Charts data from Bundesnetzagentur / SMARD.de)
 \end{itemize}
 
 \section{Validation and Verification}

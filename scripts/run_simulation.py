@@ -10,7 +10,7 @@ from src.utils.config import load_config
 # ------------------------------------------------------------------
 # Choose which simulation to run
 # ------------------------------------------------------------------
-SIMULATION_TYPE = "multi_ev_v2g"  # options: "v2g", "multi_ev", "multi_ev_v2g"
+SIMULATION_TYPE = "multi_ev"  # options: "v2g", "multi_ev", "multi_ev_v2g"
 
 # ------------------------------------------------------------------
 if __name__ == "__main__":

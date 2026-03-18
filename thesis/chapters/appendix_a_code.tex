@@ -273,9 +273,25 @@ ev_target_window: [16, 24]
 max_charge_rate: 22
 max_discharge_rate: 22
 
-# Grid Configuration
-price_profile: [0.48, 0.48, 0.48, 0.48, ...]
-sell_price_profile: [0.38, 0.38, 0.38, 0.38, ...]
+# Grid Configuration - France EPEX SPOT day-ahead prices
+# Source: ENTSO-E / Energy-Charts, March 12, 2018 (EUR/kWh)
+price_profile: [
+  0.0285, 0.0198, 0.0120, 0.0096,  # 00-03h
+  0.0190, 0.0420, 0.0447, 0.0483,  # 04-07h
+  0.0481, 0.0460, 0.0444, 0.0450,  # 08-11h
+  0.0415, 0.0384, 0.0372, 0.0376,  # 12-15h
+  0.0422, 0.0502, 0.0620, 0.0552,  # 16-19h
+  0.0432, 0.0412, 0.0368, 0.0350   # 20-23h
+]
+# V2G sell-back at 80% of purchase price
+sell_price_profile: [
+  0.0228, 0.0158, 0.0096, 0.0076,  # 00-03h
+  0.0152, 0.0336, 0.0357, 0.0387,  # 04-07h
+  0.0384, 0.0368, 0.0355, 0.0360,  # 08-11h
+  0.0332, 0.0307, 0.0298, 0.0301,  # 12-15h
+  0.0338, 0.0402, 0.0496, 0.0442,  # 16-19h
+  0.0346, 0.0330, 0.0294, 0.0280   # 20-23h
+]
 grid_capacity_per_hour: [80, 80, 80, ...]
 
 # Algorithm Parameters
@@ -283,12 +299,6 @@ rl_episodes: 15000
 rl_lr: 0.15
 rl_gamma: 1.0
 rl_epsilon: 0.10
-
-mpc_horizon: 8
-mpc_iterations: 60
-
-pso_particles: 40
-pso_iters: 60
 \end{lstlisting}
 
 \section{Data Loading Utilities}
