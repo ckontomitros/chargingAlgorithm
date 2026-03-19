@@ -33,38 +33,19 @@ Table \ref{tab:charge_only_costs} summarizes the economic performance of each me
 \label{tab:charge_only_costs}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Method} & \textbf{Total Cost (€)} & \textbf{Savings vs L0 (\%)} & \textbf{Cost/kWh (€)} & \textbf{Grid Energy (kWh)} \\
+\textbf{Method} & \textbf{Total Cost (€)} & \textbf{Savings vs Simple (\%)} & \textbf{Cost/kWh (€)} & \textbf{Grid Energy (kWh)} \\
 \midrule
-Level 0 (Baseline) & 43.89 & --- & 0.047 & 940.5 \\
-Simple (Level 1) & 31.63 & 27.9 & 0.043 & 728.5 \\
-RL (Level 2) & 30.45 & 30.6 & 0.043 & 706.3 \\
+Simple (Level 1) & 31.63 & --- & 0.043 & 728.5 \\
+RL (Level 2) & 30.45 & 3.7 & 0.043 & 706.3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key Findings:}
 \begin{itemize}
-    \item Level 1 (Simple) achieves 28\% cost reduction compared to uncontrolled charging
-    \item Level 2 (RL) provides additional 4\% improvement over Simple
+    \item Level 1 (Simple) achieves €31.63 daily cost while meeting all SoC targets
+    \item Level 2 (RL) provides an additional 3.7\% improvement over Simple
     \item RL learns optimal charging patterns through 15{,}000 training episodes
-\end{itemize}
-
-\subsubsection{Hourly Cost Breakdown}
-
-Figure \ref{fig:charge_only_hourly_cost} shows the hourly cost distribution:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/charge_only_hourly_cost.png}
-    \caption{Hourly electricity costs for different charging methods (charge-only)}
-    \label{fig:charge_only_hourly_cost}
-\end{figure}
-
-Observations:
-\begin{itemize}
-    \item Level 0 incurs high costs during morning peak (6-9 AM) due to immediate charging
-    \item Intelligent methods shift charging to midday low-price hours (12-3 PM)
-    \item Correlation between charging timing and electricity prices
 \end{itemize}
 
 \subsection{Energy Performance}
@@ -80,7 +61,6 @@ Observations:
 \toprule
 \textbf{Method} & \textbf{Solar Used (kWh)} & \textbf{Solar \% of Total} & \textbf{Grid Energy (kWh)} \\
 \midrule
-Level 0 & 0.0 & 0\% & 940.5 \\
 Simple & 7.2 & 1\% & 728.5 \\
 RL & 7.2 & 1\% & 706.3 \\
 \bottomrule
@@ -91,25 +71,7 @@ RL & 7.2 & 1\% & 706.3 \\
 \begin{itemize}
     \item Intelligent methods increase solar self-consumption from 88\% to 100\% by absorbing surplus production
     \item Temporal alignment: Charging concentrated during solar peak hours
-    \item Grid energy reduced by 23--25\% compared to baseline
-\end{itemize}
-
-\subsubsection{Grid Usage Patterns}
-
-Figure \ref{fig:charge_only_grid_usage} shows hourly grid consumption:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/charge_only_grid_usage.png}
-    \caption{Hourly grid power consumption (building + EVs)}
-    \label{fig:charge_only_grid_usage}
-\end{figure}
-
-Key observations:
-\begin{itemize}
-    \item Level 0 violates grid capacity during morning hours
-    \item All intelligent methods respect the 80 kW capacity constraint
-    \item Peak grid usage shifted to midday when solar offsets building demand
+    \item RL reduces grid energy use by about 3\% compared to the Simple policy
 \end{itemize}
 
 \subsection{Operational Performance}
@@ -129,9 +91,8 @@ Figure \ref{fig:charge_only_soc} shows the EV fleet SoC over time:
 \textbf{Analysis:}
 \begin{itemize}
     \item All methods successfully achieve target SoC before departure
-    \item Level 0 charges rapidly but at high cost
-    \item Intelligent methods pace charging to exploit low-price hours
-    \item Average final SoC: 73--88\% across all methods
+    \item Simple charges as soon as capacity allows, while RL better smooths charging across available hours
+    \item Average final SoC: 73--75\% across both methods
 \end{itemize}
 
 \subsubsection{Constraint Satisfaction}
@@ -144,7 +105,6 @@ Figure \ref{fig:charge_only_soc} shows the EV fleet SoC over time:
 \toprule
 \textbf{Method} & \textbf{Grid Violations} & \textbf{SoC Violations} & \textbf{Target Achievement} \\
 \midrule
-Level 0 & 5 & 0 & 100\% \\
 Simple & 0 & 0 & 100\% \\
 RL & 0 & 0 & 100\% \\
 \bottomrule
@@ -182,44 +142,8 @@ RL & $-$31.46 & $-$1.01 & 0.00 & 0.0 \\
     \item V2G profitability requires higher retail tariffs or larger price volatility (see sensitivity analysis)
 \end{itemize}
 
-\subsubsection{Hourly Benefit Analysis}
-
-Figure \ref{fig:v2g_hourly_benefit} illustrates hourly costs and revenues:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/v2g_hourly_benefit.png}
-    \caption{Hourly financial benefit (positive = revenue, negative = cost)}
-    \label{fig:v2g_hourly_benefit}
-\end{figure}
-
-Observations:
-\begin{itemize}
-    \item Charging concentrated during low-price midday hours when solar surplus is available
-    \item No discharging observed at these wholesale price levels -- the 20\% sell-back discount eliminates arbitrage profits
-    \item The V2G algorithm correctly identifies that discharge is unprofitable under these conditions
-\end{itemize}
-
 \subsection{V2G Discharge Patterns}
 \label{subsec:v2g_discharge}
-
-\subsubsection{Discharge Timing}
-
-Figure \ref{fig:v2g_discharge_timing} shows when V2G discharge occurs:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/v2g_discharge_timing.png}
-    \caption{V2G discharge events by hour and method}
-    \label{fig:v2g_discharge_timing}
-\end{figure}
-
-\textbf{Analysis:}
-\begin{itemize}
-    \item At the simulated wholesale prices, no discharge events occurred -- the RL agent learned that discharge is economically unfavorable
-    \item The maximum sell price (€0.050/kWh) after the 80\% factor is insufficient to recover the cost of recharging plus efficiency losses
-    \item V2G would become active with higher retail tariffs or larger peak-to-valley price spreads
-\end{itemize}
 
 \subsubsection{State of Charge Management}
 
@@ -268,15 +192,6 @@ Key observations:
 \subsection{Economic Comparison}
 \label{subsec:economic_comparison}
 
-Figure \ref{fig:cost_comparison} provides a comprehensive cost comparison:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/cost_comparison_all_levels.png}
-    \caption{Total daily cost comparison across all intelligence levels}
-    \label{fig:cost_comparison}
-\end{figure}
-
 \subsubsection{Cost Reduction by Level}
 
 \begin{table}[H]
@@ -285,22 +200,20 @@ Figure \ref{fig:cost_comparison} provides a comprehensive cost comparison:
 \label{tab:cost_reduction}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Level} & \textbf{Description} & \textbf{Cost (€)} & \textbf{Savings vs L0 (€)} & \textbf{Savings (\%)} \\
+\textbf{Level} & \textbf{Description} & \textbf{Cost (€)} & \textbf{Savings vs Simple (€)} & \textbf{Savings (\%)} \\
 \midrule
-Level 0 & Uncontrolled & 43.89 & --- & --- \\
-Level 1 & Simple rules & 31.63 & 12.26 & 28\% \\
-Level 2 & RL (Q-Learning) & 30.45 & 13.44 & 31\% \\
-Level 3 & RL + V2G & 31.46 & 12.42 & 28\% \\
+Level 1 & Simple rules & 31.63 & --- & --- \\
+Level 2 & RL (Q-Learning) & 30.45 & 1.18 & 3.7\% \\
+Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Key Insights:}
 \begin{itemize}
-    \item \textbf{Level 0 $\rightarrow$ Level 1:} Simple rules provide 28\% savings with minimal complexity
-    \item \textbf{Level 1 $\rightarrow$ Level 2:} Advanced RL optimization adds 4\% additional savings
+    \item \textbf{Level 1 $\rightarrow$ Level 2:} Advanced RL optimization adds a 3.7\% additional savings over Simple
     \item \textbf{Level 2 $\rightarrow$ Level 3:} V2G does not provide additional benefit at wholesale price levels -- the sell-back spread is insufficient for profitable arbitrage
-    \item \textbf{Diminishing returns:} The largest gain comes from the first intelligence level; RL refinement yields modest improvement
+    \item \textbf{Diminishing returns:} RL refinement yields modest improvement compared to the simple policy
 \end{itemize}
 
 \subsection{Algorithm Performance Comparison}
@@ -332,17 +245,6 @@ RL & 187.1 & 0.12 & 187.2 \\
 \subsection{State of Charge Analysis}
 \label{subsec:soc_analysis}
 
-\subsubsection{Fleet SoC Evolution}
-
-Figure \ref{fig:soc_comparison} compares SoC trajectories:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/soc_comparison_all_methods.png}
-    \caption{Average fleet SoC evolution for all methods}
-    \label{fig:soc_comparison}
-\end{figure}
-
 \subsubsection{Final SoC Distribution}
 
 \begin{table}[H]
@@ -353,7 +255,6 @@ Figure \ref{fig:soc_comparison} compares SoC trajectories:
 \toprule
 \textbf{Method} & \textbf{Mean SoC} & \textbf{Min SoC} & \textbf{Max SoC} & \textbf{Std Dev} \\
 \midrule
-Level 0 & 88.3\% & 83.0\% & 92.6\% & 2.7\% \\
 Simple & 74.7\% & 70.5\% & 78.9\% & 2.9\% \\
 RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 \bottomrule
@@ -363,18 +264,10 @@ RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 \subsection{Grid Constraint Management}
 \label{subsec:grid_constraints}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/grid_capacity_usage.png}
-    \caption{Grid capacity utilization throughout the day}
-    \label{fig:grid_capacity}
-\end{figure}
-
 \textbf{Findings:}
 \begin{itemize}
-    \item Level 0 exceeds the 80 kW capacity in 5 out of 24 hours during peak arrival periods
-    \item All intelligent methods maintain usage below the 80 kW limit with zero violations
-    \item Intelligent methods spread charging across available hours to respect constraints
+    \item Both methods maintain usage below the 80 kW limit with zero violations
+    \item Charging is spread across available hours to respect the grid constraint
 \end{itemize}
 
 \section{V2G Impact Assessment}
@@ -403,13 +296,6 @@ At wholesale price levels with an 80\% sell-back rate, V2G discharge is not econ
 
 \subsection{V2G Revenue Breakdown}
 \label{subsec:v2g_revenue}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/v2g_revenue_breakdown.png}
-    \caption{V2G revenue sources: Energy arbitrage and grid services}
-    \label{fig:v2g_revenue}
-\end{figure}
 
 The absence of V2G discharge activity at wholesale prices indicates that the primary value of intelligent charging at these price levels comes from:
 \begin{enumerate}
@@ -448,25 +334,6 @@ V2G-Enabled & 0.49 & 0.00 & 735.2 \\
 \section{Sensitivity Analysis}
 \label{sec:sensitivity}
 
-\subsection{Grid Capacity Variation}
-\label{subsec:sensitivity_capacity}
-
-Impact of different grid capacity limits:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/sensitivity_grid_capacity.png}
-    \caption{Cost vs. grid capacity for different methods}
-    \label{fig:sensitivity_capacity}
-\end{figure}
-
-\textbf{Findings:}
-\begin{itemize}
-    \item Below 60 kW: Significant cost increase due to limited charging opportunities
-    \item 80-100 kW: Optimal range for 15-vehicle fleet
-    \item Above 120 kW: Diminishing returns (constraint no longer binding)
-\end{itemize}
-
 \subsection{Electricity Price Variation}
 \label{subsec:sensitivity_price}
 
@@ -478,12 +345,12 @@ Impact of price profile variations:
 \label{tab:sensitivity_price}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Price Scenario} & \textbf{Level 0 (€)} & \textbf{Simple (€)} & \textbf{RL (€)} \\
+\textbf{Price Scenario} & \textbf{Simple (€)} & \textbf{RL (€)} \\
 \midrule
-Flat rate (€0.035/kWh) & 33.07 & 33.07 & 33.07 \\
-Low variation ($\pm$20\%) & 41.22 & 31.12 & 30.02 \\
-Base case ($\pm$50\%) & 43.89 & 31.63 & 30.45 \\
-High variation ($\pm$100\%) & 48.56 & 32.14 & 29.88 \\
+Flat rate (€0.035/kWh) & 33.07 & 33.07 \\
+Low variation ($\pm$20\%) & 31.12 & 30.02 \\
+Base case ($\pm$50\%) & 31.63 & 30.45 \\
+High variation ($\pm$100\%) & 32.14 & 29.88 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -493,25 +360,6 @@ High variation ($\pm$100\%) & 48.56 & 32.14 & 29.88 \\
     \item Flat rate: Minimal difference between methods (only renewable optimization)
     \item High price variation: Larger benefit from intelligent scheduling
     \item Smart charging value increases with price volatility
-\end{itemize}
-
-\subsection{Solar Production Variation}
-\label{subsec:sensitivity_solar}
-
-Impact of different solar production levels:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/sensitivity_solar.png}
-    \caption{Cost vs. solar panel area}
-    \label{fig:sensitivity_solar}
-\end{figure}
-
-\textbf{Observations:}
-\begin{itemize}
-    \item Larger solar installations increase savings for all methods
-    \item Intelligent methods better utilize available solar energy
-    \item Diminishing returns above 300 m² panel area
 \end{itemize}
 
 \subsection{Fleet Size Scaling}
@@ -525,12 +373,12 @@ Performance with different fleet sizes:
 \label{tab:fleet_scaling}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Fleet Size} & \textbf{Level 0 (€/EV)} & \textbf{Simple (€/EV)} & \textbf{RL (€/EV)} & \textbf{Computation Time (s)} \\
+\textbf{Fleet Size} & \textbf{Simple (€/EV)} & \textbf{RL (€/EV)} & \textbf{Computation Time (s)} \\
 \midrule
-5 EVs & 2.93 & 2.11 & 2.03 & 42 \\
-10 EVs & 2.93 & 2.11 & 2.03 & 105 \\
-15 EVs & 2.93 & 2.11 & 2.03 & 187 \\
-20 EVs & 2.93 & 2.11 & 2.03 & 310 \\
+5 EVs & 2.11 & 2.03 & 42 \\
+10 EVs & 2.11 & 2.03 & 105 \\
+15 EVs & 2.11 & 2.03 & 187 \\
+20 EVs & 2.11 & 2.03 & 310 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -547,24 +395,6 @@ Performance with different fleet sizes:
 
 \subsection{Reinforcement Learning}
 \label{subsec:rl_insights}
-
-\subsubsection{Learning Convergence}
-
-Figure \ref{fig:rl_convergence} shows Q-learning convergence:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figures/rl_convergence.png}
-    \caption{RL training convergence (average reward per episode)}
-    \label{fig:rl_convergence}
-\end{figure}
-
-\textbf{Observations:}
-\begin{itemize}
-    \item Convergence achieved after approximately 10{,}000 episodes (out of 15{,}000 total)
-    \item V2G requires more episodes due to larger action space
-    \item Final policy is stable and near-optimal
-\end{itemize}
 
 \subsubsection{Learned Policy Characteristics}
 
@@ -591,7 +421,6 @@ The trained RL agent exhibits intelligent behaviors:
 \textbf{Method} & \textbf{Solar Produced (kWh)} & \textbf{Used by Building (kWh)} & \textbf{Used by EVs (kWh)} & \textbf{Self-Consumption (\%)} \\
 \midrule
 No EVs & 58.8 & 51.5 & 0 & 88\% \\
-Level 0 & 58.8 & 51.5 & 0.0 & 88\% \\
 Simple & 58.8 & 51.5 & 7.2 & 100\% \\
 RL & 58.8 & 51.5 & 7.2 & 100\% \\
 \bottomrule
@@ -604,26 +433,6 @@ RL & 58.8 & 51.5 & 7.2 & 100\% \\
     \item Intelligent charging increases self-consumption from 88\% to 100\%
     \item Reduced grid exports during solar peak hours -- all 7.2 kWh surplus absorbed by EVs
     \item Economic benefit: approximately €0.30 per day from avoided grid purchases using solar energy
-\end{itemize}
-
-\subsection{Temporal Alignment}
-\label{subsec:temporal_alignment}
-
-Figure \ref{fig:temporal_alignment} shows the alignment between solar production and EV charging:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/solar_ev_alignment.png}
-    \caption{Temporal alignment: Solar production vs. EV charging demand}
-    \label{fig:temporal_alignment}
-\end{figure}
-
-\textbf{Analysis:}
-\begin{itemize}
-    \item Office hours (6 AM - 6 PM) align well with solar production
-    \item Peak solar (12-2 PM) coincides with EV availability
-    \item Intelligent methods exploit this alignment effectively
-    \item Mismatch in early morning and late evening requires grid energy
 \end{itemize}
 
 \section{Economic Analysis}
@@ -640,12 +449,11 @@ Extrapolating daily results to annual savings:
 \label{tab:annual_savings}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Method} & \textbf{Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings vs L0 (€)} \\
+\textbf{Method} & \textbf{Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings vs Simple (€)} \\
 \midrule
-Level 0 & 43.89 & 10{,}972 & --- \\
-Simple & 31.63 & 7{,}906 & 3{,}066 \\
-RL & 30.45 & 7{,}612 & 3{,}360 \\
-RL + V2G & 31.46 & 7{,}866 & 3{,}106 \\
+Simple & 31.63 & 7{,}906 & --- \\
+RL & 30.45 & 7{,}612 & 294 \\
+RL + V2G & 31.46 & 7{,}866 & 40 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -661,22 +469,20 @@ Estimated infrastructure costs and payback periods:
 \label{tab:roi}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Level} & \textbf{Infrastructure Cost (€)} & \textbf{Annual Savings (€)} & \textbf{Payback Period (years)} & \textbf{5-Year NPV (€)} \\
+\textbf{Level} & \textbf{Infrastructure Cost (€)} & \textbf{Annual Savings vs Simple (€)} & \textbf{Payback Period (years)} & \textbf{5-Year NPV (€)} \\
 \midrule
-Level 0 & 5{,}000 & --- & --- & --- \\
-Level 1 & 8{,}000 & 3{,}066 & 1.0 & 10{,}278 \\
-Level 2 & 12{,}000 & 3{,}360 & 2.1 & 7{,}546 \\
-Level 3 (V2G) & 25{,}000 & 3{,}106 & 6.4 & $-$8{,}551 \\
+Level 1 (Simple) & 8{,}000 & --- & --- & --- \\
+Level 2 (RL) & 12{,}000 & 294 & 40.8 & $-$10{,}727 \\
+Level 3 (V2G) & 25{,}000 & 40 & 625.0 & $-$24{,}827 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Assumptions:}
 \begin{itemize}
-    \item Level 0: Basic charging infrastructure only
-    \item Level 1: Add communication and basic control system
-    \item Level 2: Add advanced computing and optimization software
-    \item Level 3: Add bidirectional chargers and V2G equipment
+    \item Level 1: Communication and basic control system
+    \item Level 2: Advanced computing and optimization software
+    \item Level 3: Bidirectional chargers and V2G equipment
     \item Discount rate: 5\%
 \end{itemize}
 
@@ -686,31 +492,27 @@ Level 3 (V2G) & 25{,}000 & 3{,}106 & 6.4 & $-$8{,}551 \\
 \subsection{Key Findings}
 
 \begin{enumerate}
-    \item \textbf{Intelligence Pays:} Smart charging reduces costs by 28--31\% compared to uncontrolled charging
-    
-    \item \textbf{Simple Rules Effective:} Level 1 achieves 91\% of the maximum potential savings with minimal complexity
-    
-    \item \textbf{Optimization Refinement:} Level 2 RL provides an additional 4\% cost reduction beyond simple rules
+    \item \textbf{Optimization Refinement:} Level 2 RL provides a 3.7\% cost reduction beyond simple rules
     
     \item \textbf{V2G Limitations:} At wholesale price levels with 80\% sell-back rates, V2G discharge is not economically viable -- the arbitrage spread is insufficient to overcome round-trip efficiency losses
     
     \item \textbf{Algorithm Trade-offs:}
     \begin{itemize}
-        \item RL: 31\% cost reduction but requires 187 seconds of training per scheduling decision
-        \item Simple: 28\% cost reduction with near-instant execution and no training required
+        \item RL: 3.7\% cost reduction vs Simple but requires 187 seconds of training per scheduling decision
+        \item Simple: Near-instant execution with no training required
     \end{itemize}
     
     \item \textbf{Renewable Integration:} Smart charging increases solar self-consumption from 88\% to 100\%
     
-    \item \textbf{Grid Relief:} Intelligent methods eliminate all 5 capacity violations while meeting all EV charging needs
+    \item \textbf{Grid Relief:} Both methods respect the 80 kW capacity constraint while meeting all EV charging needs
 \end{enumerate}
 
 \subsection{Practical Implications}
 
 For office building applications:
 \begin{itemize}
-    \item Level 1 (Simple) recommended for all installation sizes -- delivers 91\% of maximum savings with zero training overhead
-    \item Level 2 (RL) justified for large installations (15+ EVs) where the additional 4\% saving offsets the training cost
+    \item Level 1 (Simple) recommended for all installation sizes due to strong performance with zero training overhead
+    \item Level 2 (RL) justified only when a 3.7\% incremental saving outweighs training time and complexity
     \item Level 3 (V2G) not justified at wholesale price levels; requires retail tariffs with $>$50\% peak-to-valley spread and favorable sell-back rates
 \end{itemize}
 
