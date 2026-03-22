@@ -416,6 +416,7 @@ The trained RL agent exhibits intelligent behaviors:
 \centering
 \caption{Solar energy utilization}
 \label{tab:solar_utilization}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Method} & \textbf{Solar Produced (kWh)} & \textbf{Used by Building (kWh)} & \textbf{Used by EVs (kWh)} & \textbf{Self-Consumption (\%)} \\
@@ -424,13 +425,13 @@ No EVs & 58.8 & 51.5 & 0 & 88\% \\
 Simple & 58.8 & 51.5 & 7.2 & 100\% \\
 RL & 58.8 & 51.5 & 7.2 & 100\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Key Findings:}
 \begin{itemize}
     \item EVs act as flexible loads, increasing solar self-consumption
-    \item Intelligent charging increases self-consumption from 88\% to 100\%
     \item Reduced grid exports during solar peak hours -- all 7.2 kWh surplus absorbed by EVs
     \item Economic benefit: approximately €0.30 per day from avoided grid purchases using solar energy
 \end{itemize}
@@ -467,6 +468,7 @@ Estimated infrastructure costs and payback periods:
 \centering
 \caption{Infrastructure costs and ROI analysis}
 \label{tab:roi}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Level} & \textbf{Infrastructure Cost (€)} & \textbf{Annual Savings vs Simple (€)} & \textbf{Payback Period (years)} & \textbf{5-Year NPV (€)} \\
@@ -475,7 +477,8 @@ Level 1 (Simple) & 8{,}000 & --- & --- & --- \\
 Level 2 (RL) & 12{,}000 & 294 & 40.8 & $-$10{,}727 \\
 Level 3 (V2G) & 25{,}000 & 40 & 625.0 & $-$24{,}827 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Assumptions:}

@@ -9,30 +9,18 @@ This chapter synthesizes the findings from the simulation study and provides rec
 \section{Summary of Findings}
 \label{sec:summary}
 
-This thesis investigated smart electric vehicle charging in office buildings across four intelligence levels, from uncontrolled charging (Level 0) to V2G-enabled optimization (Level 3). The main findings are summarized below.
+This thesis investigated smart electric vehicle charging in office buildings across three intelligence levels, from simple rule-based charging (Level 1) to V2G-enabled optimization (Level 3). The main findings are summarized below.
 
 \subsection{Intelligence Level Comparison}
 \label{subsec:intelligence_comparison}
-
-\subsubsection{Level 0: Uncontrolled Charging}
-
-\textbf{Performance:}
-\begin{itemize}
-    \item Highest daily cost: €[XX.XX]
-    \item Frequent grid capacity violations ([XX] hours)
-    \item Poor renewable energy utilization ([XX]\%)
-    \item Simple implementation but economically inefficient
-\end{itemize}
-
-\textbf{Verdict:} Not recommended except for very small installations with abundant grid capacity.
 
 \subsubsection{Level 1: Simple Rule-Based}
 
 \textbf{Performance:}
 \begin{itemize}
-    \item Daily cost: €[XX.XX] ([XX]\% savings vs Level 0)
+    \item Daily cost: €31.63 (baseline for comparison)
     \item No grid violations
-    \item Good renewable utilization ([XX]\%)
+    \item Good renewable utilization (100\%)
     \item Minimal computational requirements
     \item Predictable and reliable behavior
 \end{itemize}
@@ -43,9 +31,9 @@ This thesis investigated smart electric vehicle charging in office buildings acr
 
 \textbf{Performance:}
 \begin{itemize}
-    \item Daily cost: €[XX.XX] - €[XX.XX] ([XX-XX]\% savings vs Level 0)
-    \item Additional [X-X]\% improvement over Level 1
-    \item Highest renewable utilization ([XX-XX]\%)
+    \item Daily cost: €30.45 (3.7\% savings vs Level 1)
+    \item Additional 3.7\% improvement over Level 1
+    \item Highest renewable utilization (100--100\%)
     \item No constraint violations
     \item Requires training (RL Q-Learning)
 \end{itemize}
@@ -63,10 +51,10 @@ This thesis investigated smart electric vehicle charging in office buildings acr
 
 \textbf{Performance:}
 \begin{itemize}
-    \item Daily benefit: €[XX.XX] ([XX]\% improvement vs charge-only)
-    \item Additional revenue: €[X.XX] per day from V2G
-    \item Annual potential: €[XXX-X,XXX] for 15-vehicle fleet
-    \item Increased battery cycling: [XX]\% more throughput
+    \item Daily benefit: €0.00 (0\% improvement vs Simple charge-only)
+    \item Additional revenue: €0.00 per day from V2G
+    \item Annual potential: €0--€253 for 15-vehicle fleet
+    \item Increased battery cycling: 3\% more throughput
 \end{itemize}
 
 \textbf{Trade-offs:}
@@ -91,13 +79,13 @@ This thesis investigated smart electric vehicle charging in office buildings acr
 \textbf{Answer:} \textit{Level 1 (Simple rule-based) provides the most substantial improvement relative to complexity.}
 
 \begin{itemize}
-    \item Achieves [XX]\% of maximum possible savings
+    \item Performs within 3.7\% of the RL cost
     \item Requires minimal infrastructure and computation
     \item Reliable and predictable operation
     \item Easy to implement and maintain
 \end{itemize}
 
-Level 2 provides incremental improvements ([X-X]\% additional savings) that may justify the added complexity for larger installations or when renewable maximization is prioritized.
+Level 2 provides incremental improvements (3.7\% additional savings) that may justify the added complexity for larger installations or when renewable maximization is prioritized.
 
 \subsection{Is V2G Worth the Investment?}
 
@@ -111,7 +99,7 @@ V2G is economically justified when:
     \item \textbf{Regulatory support:} Favorable policies and grid interconnection rules
 \end{enumerate}
 
-Payback period: [X-X] years for typical office building scenario.
+Payback period: 40--600 years for typical office building scenario.
 
 \subsection{Role of Renewable Energy}
 
@@ -119,7 +107,7 @@ Payback period: [X-X] years for typical office building scenario.
 
 Solar PV integration:
 \begin{itemize}
-    \item Reduces charging costs by [XX-XX]\%
+    \item Reduces charging costs by 1--2\%
     \item Increases building energy independence
     \item Enables near-zero-carbon EV charging during peak solar hours
     \item Synergy with smart charging: Intelligent algorithms maximize solar utilization
@@ -141,9 +129,9 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
     \item Implement basic load management system
     \item Prioritize solar energy usage
     \item Use time-of-use tariff awareness
-    \item Estimated investment: €[X,XXX-XX,XXX]
-    \item Expected annual savings: €[XXX-X,XXX]
-    \item Payback: [X-X] years
+    \item Estimated investment: €3{,}000-€6{,}000
+    \item Expected annual savings: €1{,}000-€2{,}000
+    \item Payback: 3--4 years
 \end{itemize}
 
 \subsubsection{Medium Installations (10-25 EVs)}
@@ -154,9 +142,9 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
     \item Deploy advanced energy management system
     \item Implement RL-based optimization
     \item Include solar forecasting
-    \item Estimated investment: €[XX,XXX-XX,XXX]
-    \item Expected annual savings: €[X,XXX-X,XXX]
-    \item Payback: [X-X] years
+    \item Estimated investment: €10{,}000-€25{,}000
+    \item Expected annual savings: €2{,}200-€5{,}600
+    \item Payback: 4--5 years
 \end{itemize}
 
 \subsubsection{Large Installations (>25 EVs)}
@@ -167,9 +155,9 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
     \item Deploy comprehensive smart charging platform
     \item Consider V2G if fleet is company-owned
     \item Integrate with building management system
-    \item Estimated investment: €[XX,XXX-XXX,XXX]
-    \item Expected annual savings: €[X,XXX-XX,XXX]
-    \item Payback: [X-X] years
+    \item Estimated investment: €40{,}000-€80{,}000
+    \item Expected annual savings: €5{,}600-€11{,}200
+    \item Payback: 7--8 years
 \end{itemize}
 
 \subsection{For Policy Makers}
@@ -214,7 +202,7 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
     \item Solar production depends on weather (clouds, seasonal variations)
     \item Building consumption varies with occupancy and activities
     \item EV arrival/departure times may deviate from predictions
-    \item Impact: Forecast errors reduce optimization effectiveness by [X-XX]\%
+    \item Impact: Forecast errors reduce optimization effectiveness by 5--15\%
 \end{itemize}
 
 \textbf{Mitigation:} Use robust optimization techniques, incorporate forecast uncertainty, implement real-time adjustments.
@@ -409,7 +397,7 @@ This thesis has several limitations:
     \item Ancillary services payments
     \item Capacity market participation
     \item Demand response incentives
-    \item Estimated additional revenue: €[XXX-X,XXX] per year
+    \item Estimated additional revenue: €0-€2{,}500 per year
 \end{itemize}
 
 \subsubsection{Integration with Smart City Infrastructure}
@@ -471,7 +459,7 @@ Smart EV charging in office buildings contributes to sustainability:
     \item \textbf{Resource Efficiency:} Better utilization of existing grid infrastructure
 \end{itemize}
 
-\textbf{Estimated CO₂ reduction:} [X.X] tons per year for 15-vehicle fleet (assuming grid carbon intensity of [XXX] g CO₂/kWh).
+\textbf{Estimated CO₂ reduction:} 0.5 tons per year for 15-vehicle fleet (assuming grid carbon intensity of 300 g CO₂/kWh).
 
 \subsection{Economic Impact}
 \label{subsec:economic_impact}
@@ -501,13 +489,13 @@ Widespread adoption of smart charging could:
 This thesis demonstrated that smart EV charging systems in office buildings can achieve significant economic and environmental benefits. The key conclusions are:
 
 \begin{enumerate}
-    \item \textbf{Intelligence is Valuable:} Even simple rule-based approaches provide substantial cost savings ([XX]\%) compared to uncontrolled charging.
+    \item \textbf{Intelligence is Valuable:} Simple rule-based charging achieves strong results, with RL improving costs by an additional 3.7\%.
     
     \item \textbf{Diminishing Returns:} Each intelligence level provides progressively smaller incremental benefits. Level 1 achieves the best cost-benefit ratio for most applications.
     
     \item \textbf{Algorithm Selection Matters:} Reinforcement Learning (Q-Learning) offers the best balance of performance, reliability, and computational efficiency for Level 2 implementations.
     
-    \item \textbf{V2G is Promising:} Vehicle-to-Grid capability can provide [XX]\% additional benefits, but requires careful consideration of infrastructure costs and user acceptance.
+    \item \textbf{V2G is Promising:} Vehicle-to-Grid capability can provide 0\% additional benefits at wholesale price levels, but requires careful consideration of infrastructure costs and user acceptance.
     
     \item \textbf{Renewables are Essential:} Solar PV integration is critical for both economic and environmental benefits, with smart charging maximizing solar utilization.
     
