@@ -4,12 +4,12 @@
 \chapter{Results and Analysis}
 \label{ch:results}
 
-This chapter presents the simulation results for both charge-only and V2G-enabled scenarios. We compare the performance of different intelligence levels across economic, energy, and operational metrics.
+This chapter shows the simulation results for both charge-only and V2G-enabled scenarios. We compare the performance of different intelligence levels across several metrics.
 
 \section{Overview of Results}
 \label{sec:results_overview}
 
-Simulations were conducted for two main scenarios:
+Simulations were done for two main scenarios:
 \begin{enumerate}
     \item \textbf{Scenario 1:} Multi-EV charge-only system (15 vehicles, no V2G)
     \item \textbf{Scenario 2:} Multi-EV V2G-enabled system (15 vehicles with bidirectional capability)
@@ -69,8 +69,7 @@ RL & 7.2 & 1\% & 706.3 \\
 
 \textbf{Analysis:}
 \begin{itemize}
-    \item Intelligent methods increase solar self-consumption from 88\% to 100\% by absorbing surplus production
-    \item Temporal alignment: Charging concentrated during solar peak hours
+    \item Charging concentrated during solar peak hours
     \item RL reduces grid energy use by about 3\% compared to the Simple policy
 \end{itemize}
 
@@ -138,8 +137,7 @@ RL & $-$31.46 & $-$1.01 & 0.00 & 0.0 \\
 \textbf{Key Findings:}
 \begin{itemize}
     \item At wholesale price levels (€0.01--0.06/kWh) with 80\% sell-back rates, V2G discharge does not occur
-    \item The arbitrage spread is insufficient to offset round-trip efficiency losses
-    \item V2G profitability requires higher retail tariffs or larger price volatility (see sensitivity analysis)
+    \item V2G profitability requires higher retail tariffs or larger price volatility 
 \end{itemize}
 
 \subsection{V2G Discharge Patterns}
@@ -159,7 +157,7 @@ Figure \ref{fig:v2g_soc} shows SoC evolution with V2G:
 Key observations:
 \begin{itemize}
     \item EVs charge to the desired SoC but do not overcharge for arbitrage at these wholesale prices
-    \item No V2G discharge observed -- the sell-buy price differential is insufficient
+    \item No V2G discharge observed -- the sell price is not high enough
     \item Final SoC meets the desired level for all vehicles, averaging 74.6\%
 \end{itemize}
 
@@ -266,7 +264,7 @@ RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 
 \textbf{Findings:}
 \begin{itemize}
-    \item Both methods maintain usage below the 80 kW limit with zero violations
+    \item Both methods use less than 80 kW with zero violations
     \item Charging is spread across available hours to respect the grid constraint
 \end{itemize}
 
@@ -276,7 +274,7 @@ RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 \subsection{Charge-Only vs V2G Comparison}
 \label{subsec:charge_vs_v2g}
 
-Direct comparison between charge-only and V2G-enabled systems:
+Comparison between charge-only and V2G-enabled systems:
 
 \begin{table}[H]
 \centering
@@ -483,40 +481,9 @@ Level 3 (V2G) & 25{,}000 & 40 & 625.0 & $-$24{,}827 \\
 
 \textbf{Assumptions:}
 \begin{itemize}
-    \item Level 1: Communication and basic control system
+    \item Level 1: Basic control system
     \item Level 2: Advanced computing and optimization software
     \item Level 3: Bidirectional chargers and V2G equipment
     \item Discount rate: 5\%
 \end{itemize}
 
-\section{Summary of Results}
-\label{sec:results_summary}
-
-\subsection{Key Findings}
-
-\begin{enumerate}
-    \item \textbf{Optimization Refinement:} Level 2 RL provides a 3.7\% cost reduction beyond simple rules
-    
-    \item \textbf{V2G Limitations:} At wholesale price levels with 80\% sell-back rates, V2G discharge is not economically viable -- the arbitrage spread is insufficient to overcome round-trip efficiency losses
-    
-    \item \textbf{Algorithm Trade-offs:}
-    \begin{itemize}
-        \item RL: 3.7\% cost reduction vs Simple but requires 187 seconds of training per scheduling decision
-        \item Simple: Near-instant execution with no training required
-    \end{itemize}
-    
-    \item \textbf{Renewable Integration:} Smart charging increases solar self-consumption from 88\% to 100\%
-    
-    \item \textbf{Grid Relief:} Both methods respect the 80 kW capacity constraint while meeting all EV charging needs
-\end{enumerate}
-
-\subsection{Practical Implications}
-
-For office building applications:
-\begin{itemize}
-    \item Level 1 (Simple) recommended for all installation sizes due to strong performance with zero training overhead
-    \item Level 2 (RL) justified only when a 3.7\% incremental saving outweighs training time and complexity
-    \item Level 3 (V2G) not justified at wholesale price levels; requires retail tariffs with $>$50\% peak-to-valley spread and favorable sell-back rates
-\end{itemize}
-
-The next chapter synthesizes these findings into conclusions and recommendations.

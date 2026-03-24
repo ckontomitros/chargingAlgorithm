@@ -4,7 +4,7 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This chapter synthesizes the findings from the simulation study and provides recommendations for implementing smart EV charging systems in office buildings. We also discuss limitations and propose directions for future research.
+This chapter summarizes the findings from the simulation study. We also provide limitations and propose future research and improvements.
 
 \section{Summary of Findings}
 \label{sec:summary}
@@ -25,7 +25,7 @@ This thesis investigated smart electric vehicle charging in office buildings acr
     \item Predictable and reliable behavior
 \end{itemize}
 
-\textbf{Verdict:} \textit{Excellent cost-benefit ratio.} Achieves majority of potential savings with simple implementation. Recommended for small-to-medium installations (5-15 EVs) where simplicity and reliability are priorities.
+\textbf{Verdict:} Recommended for small-to-medium installations (5-15 EVs) where simplicity and reliability are priorities.
 
 \subsubsection{Level 2: Intelligent Optimization}
 
@@ -76,7 +76,7 @@ This thesis investigated smart electric vehicle charging in office buildings acr
 
 \subsection{Which Intelligence Level Provides Substantial Benefits?}
 
-\textbf{Answer:} \textit{Level 1 (Simple rule-based) provides the most substantial improvement relative to complexity.}
+\textbf{Answer:} \textit{Level 1 (Simple rule-based) provides the a basic implementation that is easy to maintain.}
 
 \begin{itemize}
     \item Performs within 3.7\% of the RL cost
@@ -99,96 +99,6 @@ V2G is economically justified when:
     \item \textbf{Regulatory support:} Favorable policies and grid interconnection rules
 \end{enumerate}
 
-Payback period: 40--600 years for typical office building scenario.
-
-\subsection{Role of Renewable Energy}
-
-\textbf{Answer:} \textit{Critical for economic and environmental benefits.}
-
-Solar PV integration:
-\begin{itemize}
-    \item Reduces charging costs by 1--2\%
-    \item Increases building energy independence
-    \item Enables near-zero-carbon EV charging during peak solar hours
-    \item Synergy with smart charging: Intelligent algorithms maximize solar utilization
-\end{itemize}
-
-Office buildings are ideal for solar+EV integration due to temporal alignment of solar production and EV parking hours.
-
-\section{Practical Recommendations}
-\label{sec:recommendations}
-
-\subsection{For Building Managers}
-\label{subsec:recommendations_managers}
-
-\subsubsection{Small Installations (5-10 EVs)}
-
-\textbf{Recommended approach:} Level 1 (Simple rule-based)
-
-\begin{itemize}
-    \item Implement basic load management system
-    \item Prioritize solar energy usage
-    \item Use time-of-use tariff awareness
-    \item Estimated investment: €3{,}000-€6{,}000
-    \item Expected annual savings: €1{,}000-€2{,}000
-    \item Payback: 3--4 years
-\end{itemize}
-
-\subsubsection{Medium Installations (10-25 EVs)}
-
-\textbf{Recommended approach:} Level 2 (RL Q-Learning)
-
-\begin{itemize}
-    \item Deploy advanced energy management system
-    \item Implement RL-based optimization
-    \item Include solar forecasting
-    \item Estimated investment: €10{,}000-€25{,}000
-    \item Expected annual savings: €2{,}200-€5{,}600
-    \item Payback: 4--5 years
-\end{itemize}
-
-\subsubsection{Large Installations (>25 EVs)}
-
-\textbf{Recommended approach:} Level 2 or 3 (RL with optional V2G)
-
-\begin{itemize}
-    \item Deploy comprehensive smart charging platform
-    \item Consider V2G if fleet is company-owned
-    \item Integrate with building management system
-    \item Estimated investment: €40{,}000-€80{,}000
-    \item Expected annual savings: €5{,}600-€11{,}200
-    \item Payback: 7--8 years
-\end{itemize}
-
-\subsection{For Policy Makers}
-\label{subsec:recommendations_policy}
-
-\begin{enumerate}
-    \item \textbf{Incentivize Smart Charging:} Provide subsidies or tax credits for intelligent charging infrastructure
-    
-    \item \textbf{Support V2G Development:} Streamline grid interconnection processes and establish fair compensation mechanisms
-    
-    \item \textbf{Promote Workplace Charging:} Encourage office buildings to install EV charging infrastructure
-    
-    \item \textbf{Dynamic Pricing:} Implement time-of-use tariffs to enable cost-based optimization
-    
-    \item \textbf{Renewable Integration:} Provide incentives for combined solar+EV installations
-\end{enumerate}
-
-\subsection{For Researchers}
-\label{subsec:recommendations_researchers}
-
-\begin{enumerate}
-    \item \textbf{Real-World Validation:} Deploy and test algorithms in actual office buildings
-    
-    \item \textbf{Battery Degradation:} Incorporate detailed battery aging models
-    
-    \item \textbf{Uncertainty Handling:} Develop robust optimization under forecast uncertainty
-    
-    \item \textbf{User Behavior:} Study user acceptance and behavioral responses to smart charging
-    
-    \item \textbf{Multi-Building Coordination:} Investigate district-level optimization
-\end{enumerate}
 
 \section{Challenges and Limitations}
 \label{sec:challenges}
@@ -230,15 +140,6 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
 \subsection{Economic Challenges}
 \label{subsec:economic_challenges}
 
-\subsubsection{Infrastructure Investment}
-
-\begin{itemize}
-    \item High upfront costs for smart charging equipment
-    \item V2G requires expensive bidirectional chargers
-    \item Payback periods may be too long for some stakeholders
-\end{itemize}
-
-\textbf{Mitigation:} Government incentives, shared infrastructure models, leasing options.
 
 \subsubsection{Electricity Market Structure}
 
@@ -262,16 +163,6 @@ Office buildings are ideal for solar+EV integration due to temporal alignment of
 \end{itemize}
 
 \textbf{Mitigation:} Provide battery degradation insurance, use conservative discharge limits, educate users with data.
-
-\subsubsection{Mobility Anxiety}
-
-\begin{itemize}
-    \item Users may distrust automated charging systems
-    \item Concerns about insufficient charge for unexpected trips
-    \item Desire for manual override capability
-\end{itemize}
-
-\textbf{Mitigation:} Provide user interfaces with transparency, allow manual overrides, guarantee minimum SoC levels.
 
 \subsection{Study Limitations}
 \label{subsec:study_limitations}
@@ -306,7 +197,7 @@ This thesis has several limitations:
     \item Develop stochastic optimization models
     \item Incorporate solar and load forecasting errors
     \item Robust optimization under uncertainty
-    \item Scenario-based planning
+    \item More scenario-based planning
 \end{itemize}
 
 \textbf{Expected impact:} More realistic performance estimates, robust policies that work under uncertainty.
@@ -321,17 +212,6 @@ This thesis has several limitations:
 \end{itemize}
 
 \textbf{Expected impact:} More accurate V2G cost-benefit analysis, degradation-aware optimization.
-
-\subsubsection{Real-World Validation}
-
-\begin{itemize}
-    \item Deploy algorithms in pilot office buildings
-    \item Collect operational data and user feedback
-    \item Validate simulation predictions
-    \item Identify implementation challenges
-\end{itemize}
-
-\textbf{Expected impact:} Practical insights, algorithm refinements, user acceptance data.
 
 \subsection{Medium-Term Research Directions}
 \label{subsec:medium_term}
@@ -366,49 +246,6 @@ This thesis has several limitations:
 \subsection{Long-Term Research Vision}
 \label{subsec:long_term}
 
-\subsubsection{Multi-Building Coordination}
-
-\begin{itemize}
-    \item District-level optimization (multiple office buildings)
-    \item Shared energy resources and grid capacity
-    \item Peer-to-peer energy trading
-    \item Microgrid formation
-\end{itemize}
-
-\textbf{Potential benefits:}
-\begin{itemize}
-    \item Economies of scale
-    \item Better load balancing
-    \item Increased resilience
-    \item Community-level renewable integration
-\end{itemize}
-
-\subsubsection{Grid Services and Demand Response}
-
-\begin{itemize}
-    \item Participate in frequency regulation markets
-    \item Provide voltage support and reactive power
-    \item Demand response programs
-    \item Integration with virtual power plants
-\end{itemize}
-
-\textbf{Revenue opportunities:}
-\begin{itemize}
-    \item Ancillary services payments
-    \item Capacity market participation
-    \item Demand response incentives
-    \item Estimated additional revenue: €0-€2{,}500 per year
-\end{itemize}
-
-\subsubsection{Integration with Smart City Infrastructure}
-
-\begin{itemize}
-    \item Coordination with public transportation
-    \item Integration with traffic management systems
-    \item Connection to smart grid infrastructure
-    \item Data sharing with city energy management
-\end{itemize}
-
 \subsubsection{Advanced AI Techniques}
 
 \begin{itemize}
@@ -421,32 +258,6 @@ This thesis has several limitations:
 \subsection{Emerging Technologies}
 \label{subsec:emerging_tech}
 
-\subsubsection{Wireless Charging}
-
-\begin{itemize}
-    \item Inductive charging pads in parking spaces
-    \item Automatic charging without cables
-    \item Impact on user behavior and optimization
-\end{itemize}
-
-\subsubsection{Battery Swapping}
-
-\begin{itemize}
-    \item Alternative to conventional charging
-    \item Rapid "refueling" capability
-    \item Integration with smart charging strategies
-\end{itemize}
-
-\subsubsection{Second-Life Batteries}
-
-\begin{itemize}
-    \item Repurpose retired EV batteries for building storage
-    \item Cost-effective energy storage
-    \item Circular economy benefits
-\end{itemize}
-
-\section{Broader Implications}
-\label{sec:implications}
 
 \subsection{Environmental Impact}
 \label{subsec:environmental}
@@ -459,25 +270,12 @@ Smart EV charging in office buildings contributes to sustainability:
     \item \textbf{Resource Efficiency:} Better utilization of existing grid infrastructure
 \end{itemize}
 
-\textbf{Estimated CO₂ reduction:} 0.5 tons per year for 15-vehicle fleet (assuming grid carbon intensity of 300 g CO₂/kWh).
-
-\subsection{Economic Impact}
-\label{subsec:economic_impact}
-
-Widespread adoption of smart charging could:
-
-\begin{itemize}
-    \item Reduce EV operating costs, accelerating adoption
-    \item Defer grid infrastructure upgrades (saving billions)
-    \item Create new revenue streams for EV owners (V2G)
-    \item Enable new business models (charging-as-a-service)
-\end{itemize}
 
 \subsection{Social Impact}
 \label{subsec:social_impact}
 
 \begin{itemize}
-    \item \textbf{Workplace Benefits:} Attract employees with EV charging amenities
+    \item \textbf{Workplace Benefits:} Attract employees with EV charging benefits
     \item \textbf{Energy Equity:} Access to affordable EV charging for apartment dwellers
     \item \textbf{Grid Resilience:} Distributed energy resources improve reliability
     \item \textbf{Technology Adoption:} Demonstrates practical AI applications in energy
@@ -489,9 +287,9 @@ Widespread adoption of smart charging could:
 This thesis demonstrated that smart EV charging systems in office buildings can achieve significant economic and environmental benefits. The key conclusions are:
 
 \begin{enumerate}
-    \item \textbf{Intelligence is Valuable:} Simple rule-based charging achieves strong results, with RL improving costs by an additional 3.7\%.
+    \item \textbf{Intelligence is Valuable:} RL improves costs by an additional 3.7\%.
     
-    \item \textbf{Diminishing Returns:} Each intelligence level provides progressively smaller incremental benefits. Level 1 achieves the best cost-benefit ratio for most applications.
+    \item \textbf{Diminishing Returns:} Each intelligence level provides progressively smaller incremental benefits. Level 2 achieves the best cost-benefit ratio for most applications.
     
     \item \textbf{Algorithm Selection Matters:} Reinforcement Learning (Q-Learning) offers the best balance of performance, reliability, and computational efficiency for Level 2 implementations.
     
@@ -502,20 +300,9 @@ This thesis demonstrated that smart EV charging systems in office buildings can 
     \item \textbf{Context Matters:} The optimal intelligence level depends on fleet size, electricity pricing structure, grid constraints, and organizational priorities.
 \end{enumerate}
 
-\subsection{Contribution to the Field}
-
-This work contributes to the field by:
-
-\begin{itemize}
-    \item Providing a comprehensive comparison of multiple optimization algorithms in a realistic office building context
-    \item Quantifying the economic value of different intelligence levels
-    \item Demonstrating practical implementation of Q-Learning for EV charging optimization
-    \item Evaluating V2G benefits with realistic constraints
-    \item Offering practical recommendations for building managers and policy makers
-\end{itemize}
 
 \subsection{Closing Statement}
 
-As electric vehicle adoption accelerates and renewable energy becomes increasingly prevalent, smart charging systems will play a crucial role in the energy transition. Office buildings, with their predictable patterns and solar potential, represent an ideal application domain. This thesis demonstrates that intelligent coordination of EV charging, building energy, and renewable generation can deliver substantial economic and environmental benefits.
+As electric vehicle adoption increases and renewable energy becomes more important, smart charging systems will play a crucial role in the energy transition. Office buildings, with their predictable patterns and solar potential, represent an ideal application domain. This thesis demonstrates that intelligent managing of EV charging, building energy, and renewable generation can deliver substantial economic and environmental benefits.
 
 The path forward requires continued research, real-world validation, and supportive policies. However, the technical feasibility and economic attractiveness of smart EV charging in office buildings are clearly established. The question is no longer \textit{if} but \textit{when} and \textit{how} these systems will be widely deployed.
