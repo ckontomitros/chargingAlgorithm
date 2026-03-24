@@ -4,101 +4,54 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This chapter summarizes the findings from the simulation study. We also provide limitations and propose future research and improvements.
+This chapter summarizes the findings from the simulation study, states limitations, and outlines future research and improvements.
 
 \section{Summary of Findings}
 \label{sec:summary}
 
-This thesis investigated smart electric vehicle charging in office buildings across three intelligence levels, from simple rule-based charging (Level 1) to V2G-enabled optimization (Level 3). The main findings are summarized below.
+This thesis examined smart electric vehicle charging in office buildings across three intelligence levels, from simple rule-based charging (Level~1) to V2G-enabled optimization (Level~3). The following subsections condense the main results.
 
 \subsection{Intelligence Level Comparison}
 \label{subsec:intelligence_comparison}
 
 \subsubsection{Level 1: Simple Rule-Based}
 
-\textbf{Performance:}
-\begin{itemize}
-    \item Daily cost: €31.63 (baseline for comparison)
-    \item No grid violations
-    \item Good renewable utilization (100\%)
-    \item Minimal computational requirements
-    \item Predictable and reliable behavior
-\end{itemize}
+Level~1 reaches a daily cost of €31.63, which serves as the baseline. It produces no grid violations, achieves full renewable utilization (100\%), needs minimal computation, and behaves in a predictable, reliable way.
 
-\textbf{Verdict:} Recommended for small-to-medium installations (5-15 EVs) where simplicity and reliability are priorities.
+\textit{Verdict:} Suitable for small-to-medium installations (5--15~EVs) when simplicity and reliability matter most.
 
 \subsubsection{Level 2: Intelligent Optimization}
 
-\textbf{Performance:}
-\begin{itemize}
-    \item Daily cost: €30.45 (3.7\% savings vs Level 1)
-    \item Additional 3.7\% improvement over Level 1
-    \item Highest renewable utilization (100--100\%)
-    \item No constraint violations
-    \item Requires training (RL Q-Learning)
-\end{itemize}
+Level~2 lowers daily cost to €30.45, a 3.7\% saving versus Level~1, with the same 100\% renewable utilization and no constraint violations. It relies on RL (Q-Learning) and therefore requires a training phase.
 
-\textbf{Algorithm Recommendations:}
-\begin{itemize}
-    \item \textbf{Simple Rule-Based:} Fast and predictable. Recommended for small installations where simplicity is preferred.
-    
-    \item \textbf{RL (Q-Learning):} Best balance of performance and practicality. Near-optimal results with reasonable training time. Recommended for medium-to-large installations.
-\end{itemize}
+For algorithm choice, simple rule-based control remains fast and predictable and fits small sites where simplicity is paramount. Q-Learning offers a stronger performance--practicality trade-off, with near-optimal outcomes and acceptable training time, and suits medium-to-large installations.
 
-\textbf{Verdict:} RL (Q-Learning) is recommended as the primary approach for installations with more than 10 EVs, while the simple rule-based method is sufficient for smaller fleets.
+\textit{Verdict:} Q-Learning is the primary recommendation where the fleet exceeds about ten vehicles; the simple rule-based controller remains adequate for smaller fleets.
 
 \subsubsection{Level 3: Vehicle-to-Grid}
 
-\textbf{Performance:}
-\begin{itemize}
-    \item Daily benefit: €0.00 (0\% improvement vs Simple charge-only)
-    \item Additional revenue: €0.00 per day from V2G
-    \item Annual potential: €0--€253 for 15-vehicle fleet
-    \item Increased battery cycling: 3\% more throughput
-\end{itemize}
+Level~3 shows €0.00 daily benefit and 0\% improvement versus simple charge-only, with €0.00 additional V2G revenue per day. Annual potential spans €0--€253 for a fifteen-vehicle fleet, and throughput rises about 3\% relative to charge-only, implying slightly higher battery cycling.
 
-\textbf{Trade-offs:}
-\begin{itemize}
-    \item \textit{Pros:} Significant revenue potential, grid services, peak shaving
-    \item \textit{Cons:} Higher infrastructure cost, battery degradation concerns, user acceptance challenges
-\end{itemize}
+On balance, V2G can offer significant revenue potential, grid services, and peak shaving, but it implies higher infrastructure cost, battery degradation concerns, and user acceptance hurdles.
 
-\textbf{Verdict:} Economically attractive when:
-\begin{enumerate}
-    \item Sell-back prices are favorable (>80\% of purchase prices)
-    \item Price volatility is high (enables profitable arbitrage)
-    \item Users accept battery cycling (company-owned fleets)
-    \item Infrastructure investment can be amortized over large fleet
-\end{enumerate}
+\textit{Verdict:} V2G becomes economically attractive when sell-back prices exceed roughly 80\% of purchase prices, price volatility is high enough for arbitrage, users tolerate extra cycling (e.g.\ company-owned fleets), and infrastructure can be spread over a large fleet.
 
 \section{Answering the Research Questions}
 \label{sec:research_questions}
 
 \subsection{Which Intelligence Level Provides Substantial Benefits?}
 
-\textbf{Answer:} \textit{Level 1 (Simple rule-based) provides the a basic implementation that is easy to maintain.}
+\textit{Answer:} Level~1 (simple rule-based control) provides a basic implementation that is easy to maintain.
 
-\begin{itemize}
-    \item Performs within 3.7\% of the RL cost
-    \item Requires minimal infrastructure and computation
-    \item Reliable and predictable operation
-    \item Easy to implement and maintain
-\end{itemize}
+It finishes within 3.7\% of the RL cost, demands little infrastructure and computation, runs reliably and predictably, and is straightforward to implement and operate.
 
-Level 2 provides incremental improvements (3.7\% additional savings) that may justify the added complexity for larger installations or when renewable maximization is prioritized.
+Level~2 adds incremental savings (3.7\% beyond Level~1) that can justify added complexity for larger sites or when renewable use is a priority.
 
 \subsection{Is V2G Worth the Investment?}
 
-\textbf{Answer:} \textit{Context-dependent, but generally promising for office buildings.}
+\textit{Answer:} The case is context-dependent, though the setting remains promising for office buildings.
 
-V2G is economically justified when:
-\begin{enumerate}
-    \item \textbf{Fleet ownership:} Company-owned vehicles (no user concerns about battery degradation)
-    \item \textbf{Price spread:} High differential between purchase and sell prices
-    \item \textbf{Scale:} Fleet size >10 vehicles to amortize infrastructure costs
-    \item \textbf{Regulatory support:} Favorable policies and grid interconnection rules
-\end{enumerate}
-
+V2G is easier to justify with company-owned vehicles (limiting user concerns over degradation), a wide spread between purchase and sell prices, fleets above about ten vehicles to amortize hardware, and regulatory conditions that favor grid interconnection and compensation.
 
 \section{Challenges and Limitations}
 \label{sec:challenges}
@@ -108,82 +61,44 @@ V2G is economically justified when:
 
 \subsubsection{Forecasting Accuracy}
 
-\begin{itemize}
-    \item Solar production depends on weather (clouds, seasonal variations)
-    \item Building consumption varies with occupancy and activities
-    \item EV arrival/departure times may deviate from predictions
-    \item Impact: Forecast errors reduce optimization effectiveness by 5--15\%
-\end{itemize}
+Solar output depends on weather and season; building load moves with occupancy and activity; and actual EV arrivals and departures can deviate from forecasts. Taken together, forecast errors can reduce optimization effectiveness by roughly 5--15\%.
 
-\textbf{Mitigation:} Use robust optimization techniques, incorporate forecast uncertainty, implement real-time adjustments.
+\textit{Mitigation:} Use robust optimization, model forecast uncertainty, and allow real-time updates.
 
 \subsubsection{Computational Complexity}
 
-\begin{itemize}
-    \item Optimization time increases with fleet size
-    \item Real-time requirements for online algorithms
-    \item Trade-off between solution quality and computation time
-\end{itemize}
+Optimization cost grows with fleet size, online use imposes real-time limits, and there is an inherent trade-off between solution quality and compute time.
 
-\textbf{Mitigation:} Use approximate algorithms (RL), parallel computation, edge computing.
+\textit{Mitigation:} Rely on approximate methods such as RL, parallelize computation, or push work to edge nodes.
 
 \subsubsection{Communication and Control}
 
-\begin{itemize}
-    \item Requires reliable communication with EVs
-    \item Cybersecurity concerns (grid-connected systems)
-    \item Standardization of charging protocols
-\end{itemize}
+Reliable links to vehicles are required, grid-connected systems raise cybersecurity issues, and charging protocols must interoperate.
 
-\textbf{Mitigation:} Use established standards (OCPP, ISO 15118), implement secure communication protocols.
+\textit{Mitigation:} Adopt established standards (OCPP, ISO~15118) and secure communication practices.
 
 \subsection{Economic Challenges}
 \label{subsec:economic_challenges}
 
-
 \subsubsection{Electricity Market Structure}
 
-\begin{itemize}
-    \item Not all regions have time-of-use pricing
-    \item V2G compensation mechanisms still developing
-    \item Regulatory barriers to grid services from EVs
-\end{itemize}
+Time-of-use pricing is not universal, V2G compensation is still evolving, and regulation can block EV-based grid services.
 
-\textbf{Mitigation:} Advocate for policy changes, participate in pilot programs, explore alternative revenue streams.
+\textit{Mitigation:} Engage in policy discussion, join pilots, and explore alternative revenue streams.
 
 \subsection{User Acceptance Challenges}
 \label{subsec:user_challenges}
 
 \subsubsection{Battery Degradation Concerns}
 
-\begin{itemize}
-    \item Users worry about reduced battery lifespan from V2G
-    \item Lack of clear data on degradation impacts
-    \item Warranty implications
-\end{itemize}
+Users worry about shorter battery life from V2G, empirical degradation data are thin, and warranties may be unclear.
 
-\textbf{Mitigation:} Provide battery degradation insurance, use conservative discharge limits, educate users with data.
+\textit{Mitigation:} Offer degradation safeguards or insurance, cap discharge aggressively, and support decisions with measured data.
 
 \subsection{Study Limitations}
 \label{subsec:study_limitations}
 
-This thesis has several limitations:
-
-\begin{enumerate}
-    \item \textbf{Perfect Forecasting:} Assumed perfect knowledge of future solar production and building consumption
-    
-    \item \textbf{Single Day Simulation:} Did not capture multi-day patterns or seasonal variations
-    
-    \item \textbf{No Battery Degradation:} Simplified battery model without aging effects
-    
-    \item \textbf{Deterministic Arrivals:} Real-world arrival times are more variable
-    
-    \item \textbf{Homogeneous Fleet:} All EVs have identical specifications
-    
-    \item \textbf{No User Preferences:} Did not model individual user charging preferences
-    
-    \item \textbf{Single Location:} Results specific to one climate and building type
-\end{enumerate}
+The work assumes perfect foresight of solar production and building load; simulates a single day rather than multi-day or seasonal behavior; uses a simplified battery model without aging; fixes deterministic arrival times; treats the fleet as homogeneous; omits individual user preferences; and reflects one climate and building type. Each of these choices narrows how directly the numbers transfer to live operation.
 
 \section{Future Research Directions}
 \label{sec:future_work}
@@ -193,116 +108,58 @@ This thesis has several limitations:
 
 \subsubsection{Uncertainty Quantification}
 
-\begin{itemize}
-    \item Develop stochastic optimization models
-    \item Incorporate solar and load forecasting errors
-    \item Robust optimization under uncertainty
-    \item More scenario-based planning
-\end{itemize}
+Next steps include stochastic optimization, explicit solar and load forecast errors, robust optimization under uncertainty, and richer scenario planning.
 
-\textbf{Expected impact:} More realistic performance estimates, robust policies that work under uncertainty.
+\textit{Expected impact:} More realistic performance estimates and policies that remain effective under uncertainty.
 
 \subsubsection{Battery Degradation Modeling}
 
-\begin{itemize}
-    \item Integrate battery aging models (capacity fade, resistance increase)
-    \item Quantify V2G impact on battery lifespan
-    \item Optimize charging strategies to minimize degradation
-    \item Economic analysis including battery replacement costs
-\end{itemize}
+Future work should embed aging (capacity fade, resistance growth), quantify V2G effects on lifespan, optimize for degradation, and extend the economic model with replacement costs.
 
-\textbf{Expected impact:} More accurate V2G cost-benefit analysis, degradation-aware optimization.
+\textit{Expected impact:} Sharper V2G business cases and degradation-aware control.
 
 \subsection{Medium-Term Research Directions}
 \label{subsec:medium_term}
 
 \subsubsection{Multi-Day and Seasonal Analysis}
 
-\begin{itemize}
-    \item Extend simulation to weeks/months
-    \item Capture seasonal solar variations
-    \item Model day-to-day EV usage patterns
-    \item Long-term economic analysis
-\end{itemize}
+Simulations should extend to weeks or months, capture seasonal solar swings, represent day-to-day EV usage, and support long-run economics.
 
 \subsubsection{Heterogeneous Fleet Management}
 
-\begin{itemize}
-    \item Different EV models (varying capacities, charge rates)
-    \item Mixed user preferences and priorities
-    \item Fairness in charging allocation
-    \item Personalized optimization
-\end{itemize}
+Open questions cover mixed EV types (capacity and charge rate), conflicting user priorities, fairness in allocation, and personalized objectives.
 
 \subsubsection{Advanced Forecasting}
 
-\begin{itemize}
-    \item Machine learning for solar prediction (using weather data)
-    \item Building load forecasting (occupancy-based)
-    \item EV arrival/departure prediction (historical patterns)
-    \item Integration with weather APIs and building sensors
-\end{itemize}
+Promising directions are machine-learning solar forecasts from weather data, occupancy-driven building load models, historical arrival and departure prediction, and tighter coupling with weather APIs and building sensors.
 
 \subsection{Long-Term Research Vision}
 \label{subsec:long_term}
 
 \subsubsection{Advanced AI Techniques}
 
-\begin{itemize}
-    \item Deep reinforcement learning (A3C, PPO, SAC)
-    \item Multi-agent reinforcement learning
-    \item Transfer learning across different buildings
-    \item Federated learning for privacy-preserving optimization
-\end{itemize}
+Longer horizons include deep RL (A3C, PPO, SAC), multi-agent RL, transfer learning across buildings, and federated learning for privacy-preserving optimization.
 
 \subsection{Emerging Technologies}
 \label{subsec:emerging_tech}
 
-
 \subsection{Environmental Impact}
 \label{subsec:environmental}
 
-Smart EV charging in office buildings contributes to sustainability:
-
-\begin{itemize}
-    \item \textbf{Carbon Reduction:} Increased renewable utilization reduces emissions
-    \item \textbf{Grid Decarbonization:} Flexible loads enable higher renewable penetration
-    \item \textbf{Resource Efficiency:} Better utilization of existing grid infrastructure
-\end{itemize}
-
+Smart office charging supports sustainability by raising renewable use (and thus lowering emissions), helping grids absorb more renewables through flexibility, and making better use of existing grid assets.
 
 \subsection{Social Impact}
 \label{subsec:social_impact}
 
-\begin{itemize}
-    \item \textbf{Workplace Benefits:} Attract employees with EV charging benefits
-    \item \textbf{Energy Equity:} Access to affordable EV charging for apartment dwellers
-    \item \textbf{Grid Resilience:} Distributed energy resources improve reliability
-    \item \textbf{Technology Adoption:} Demonstrates practical AI applications in energy
-\end{itemize}
+Workplace charging can attract staff, improve access for residents without home charging, add distributed flexibility for resilience, and illustrate practical AI in energy systems.
 
 \section{Final Remarks}
 \label{sec:final_remarks}
 
-This thesis demonstrated that smart EV charging systems in office buildings can achieve significant economic and environmental benefits. The key conclusions are:
-
-\begin{enumerate}
-    \item \textbf{Intelligence is Valuable:} RL improves costs by an additional 3.7\%.
-    
-    \item \textbf{Diminishing Returns:} Each intelligence level provides progressively smaller incremental benefits. Level 2 achieves the best cost-benefit ratio for most applications.
-    
-    \item \textbf{Algorithm Selection Matters:} Reinforcement Learning (Q-Learning) offers the best balance of performance, reliability, and computational efficiency for Level 2 implementations.
-    
-    \item \textbf{V2G is Promising:} Vehicle-to-Grid capability can provide 0\% additional benefits at wholesale price levels, but requires careful consideration of infrastructure costs and user acceptance.
-    
-    \item \textbf{Renewables are Essential:} Solar PV integration is critical for both economic and environmental benefits, with smart charging maximizing solar utilization.
-    
-    \item \textbf{Context Matters:} The optimal intelligence level depends on fleet size, electricity pricing structure, grid constraints, and organizational priorities.
-\end{enumerate}
-
+The study shows that smart EV charging in office buildings can yield meaningful economic and environmental gains. RL improves costs by a further 3.7\% over the simple baseline. Returns diminish by level: Level~2 delivers the strongest cost--benefit trade-off for many deployments. Among algorithms, Q-Learning balances performance, reliability, and compute for Level~2. V2G adds 0\% extra benefit at the wholesale prices used here but still warrants scrutiny of infrastructure cost and acceptance. Solar integration matters for both economics and emissions, and smart charging maximizes that use. Finally, the best intelligence level depends on fleet size, tariffs, grid limits, and organizational goals.
 
 \subsection{Closing Statement}
 
-As electric vehicle adoption increases and renewable energy becomes more important, smart charging systems will play a crucial role in the energy transition. Office buildings, with their predictable patterns and solar potential, represent an ideal application domain. This thesis demonstrates that intelligent managing of EV charging, building energy, and renewable generation can deliver substantial economic and environmental benefits.
+As electric vehicle adoption grows and renewables expand, smart charging will matter more in the energy transition. Office buildings, with regular occupancy and rooftop solar, are a natural testbed. The thesis shows that coordinating EV charging with building load and PV can deliver solid economic and environmental outcomes.
 
-The path forward requires continued research, real-world validation, and supportive policies. However, the technical feasibility and economic attractiveness of smart EV charging in office buildings are clearly established. The question is no longer \textit{if} but \textit{when} and \textit{how} these systems will be widely deployed.
+Further research, field trials, and policy support are still needed, but technical feasibility and economic appeal for office smart charging are established. The open questions are less about \textit{whether} such systems can work than about \textit{when} and \textit{how} they will scale.

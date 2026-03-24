@@ -9,13 +9,9 @@ This chapter shows the simulation results for both charge-only and V2G-enabled s
 \section{Overview of Results}
 \label{sec:results_overview}
 
-Simulations were done for two main scenarios:
-\begin{enumerate}
-    \item \textbf{Scenario 1:} Multi-EV charge-only system (15 vehicles, no V2G)
-    \item \textbf{Scenario 2:} Multi-EV V2G-enabled system (15 vehicles with bidirectional capability)
-\end{enumerate}
+Simulations covered two main scenarios. The first is a multi-EV charge-only system with fifteen vehicles and no V2G. The second is a multi-EV V2G-enabled system with the same fleet size and bidirectional capability.
 
-Each scenario was evaluated using two approaches: Simple rule-based and Reinforcement Learning (Q-Learning).
+Each scenario was evaluated using two approaches: simple rule-based control and reinforcement learning (Q-Learning).
 
 \section{Scenario 1: Charge-Only Results}
 \label{sec:charge_only_results}
@@ -41,12 +37,7 @@ RL (Level 2) & 30.45 & 3.7 & 0.043 & 706.3 \\
 \end{tabular}
 \end{table}
 
-\textbf{Key Findings:}
-\begin{itemize}
-    \item Level 1 (Simple) achieves €31.63 daily cost while meeting all SoC targets
-    \item Level 2 (RL) provides an additional 3.7\% improvement over Simple
-    \item RL learns optimal charging patterns through 15{,}000 training episodes
-\end{itemize}
+Level~1 (Simple) reaches a daily cost of €31.63 while meeting all SoC targets. Level~2 (RL) yields a further 3.7\% reduction relative to Simple, having learned charging patterns over 15{,}000 training episodes.
 
 \subsection{Energy Performance}
 \label{subsec:charge_only_energy}
@@ -67,11 +58,7 @@ RL & 7.2 & 1\% & 706.3 \\
 \end{tabular}
 \end{table}
 
-\textbf{Analysis:}
-\begin{itemize}
-    \item Charging concentrated during solar peak hours
-    \item RL reduces grid energy use by about 3\% compared to the Simple policy
-\end{itemize}
+Charging is concentrated during solar peak hours. RL lowers grid energy use by roughly 3\% compared with the Simple policy.
 
 \subsection{Operational Performance}
 \label{subsec:charge_only_operational}
@@ -87,12 +74,7 @@ Figure \ref{fig:charge_only_soc} shows the EV fleet SoC over time:
     \label{fig:charge_only_soc}
 \end{figure}
 
-\textbf{Analysis:}
-\begin{itemize}
-    \item All methods successfully achieve target SoC before departure
-    \item Simple charges as soon as capacity allows, while RL better smooths charging across available hours
-    \item Average final SoC: 73--75\% across both methods
-\end{itemize}
+Every method reaches the target SoC before departure. Simple charges as soon as capacity allows, whereas RL spreads charging more evenly across available hours. Average final SoC lies between 73\% and 75\% for both methods.
 
 \subsubsection{Constraint Satisfaction}
 
@@ -134,11 +116,7 @@ RL & $-$31.46 & $-$1.01 & 0.00 & 0.0 \\
 \end{tabular}
 \end{table}
 
-\textbf{Key Findings:}
-\begin{itemize}
-    \item At wholesale price levels (€0.01--0.06/kWh) with 80\% sell-back rates, V2G discharge does not occur
-    \item V2G profitability requires higher retail tariffs or larger price volatility 
-\end{itemize}
+At wholesale prices between €0.01 and €0.06/kWh with an 80\% sell-back rate, V2G discharge does not occur. Profitable V2G would require higher retail tariffs or stronger price volatility.
 
 \subsection{V2G Discharge Patterns}
 \label{subsec:v2g_discharge}
@@ -154,12 +132,7 @@ Figure \ref{fig:v2g_soc} shows SoC evolution with V2G:
     \label{fig:v2g_soc}
 \end{figure}
 
-Key observations:
-\begin{itemize}
-    \item EVs charge to the desired SoC but do not overcharge for arbitrage at these wholesale prices
-    \item No V2G discharge observed -- the sell price is not high enough
-    \item Final SoC meets the desired level for all vehicles, averaging 74.6\%
-\end{itemize}
+EVs charge to the desired SoC without overcharging for arbitrage at these wholesale prices. No V2G discharge appears because the sell price remains too low. Final SoC meets the target for all vehicles, with a fleet average of 74.6\%.
 
 \subsection{Energy Flow Analysis}
 \label{subsec:v2g_energy_flow}
@@ -207,12 +180,7 @@ Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\% \\
 \end{tabular}
 \end{table}
 
-\textbf{Key Insights:}
-\begin{itemize}
-    \item \textbf{Level 1 $\rightarrow$ Level 2:} Advanced RL optimization adds a 3.7\% additional savings over Simple
-    \item \textbf{Level 2 $\rightarrow$ Level 3:} V2G does not provide additional benefit at wholesale price levels -- the sell-back spread is insufficient for profitable arbitrage
-    \item \textbf{Diminishing returns:} RL refinement yields modest improvement compared to the simple policy
-\end{itemize}
+Moving from Level~1 to Level~2, advanced RL optimization adds 3.7\% savings on top of the Simple baseline. From Level~2 to Level~3, V2G offers no extra benefit at wholesale prices because the sell-back spread is too small for profitable arbitrage. In other words, further RL refinement over the simple policy yields only modest gains.
 
 \subsection{Algorithm Performance Comparison}
 \label{subsec:algorithm_comparison}
@@ -233,12 +201,7 @@ RL & 187.1 & 0.12 & 187.2 \\
 \end{tabular}
 \end{table}
 
-\textbf{Observations:}
-\begin{itemize}
-    \item Simple has near-instant execution with no training required
-    \item RL requires significant training but fast execution once trained
-    \item Trade-off between training investment and performance improvement
-\end{itemize}
+Simple control runs almost instantly and needs no training. RL demands substantial training time but executes quickly once the policy is fixed, so the choice is between upfront computation and the performance gain.
 
 \subsection{State of Charge Analysis}
 \label{subsec:soc_analysis}
@@ -262,11 +225,7 @@ RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 \subsection{Grid Constraint Management}
 \label{subsec:grid_constraints}
 
-\textbf{Findings:}
-\begin{itemize}
-    \item Both methods use less than 80 kW with zero violations
-    \item Charging is spread across available hours to respect the grid constraint
-\end{itemize}
+Both methods stay below 80~kW with zero violations. Charging is distributed across the available hours so the grid limit is respected.
 
 \section{V2G Impact Assessment}
 \label{sec:v2g_impact}
@@ -290,17 +249,12 @@ RL & 30.45 & 31.46 & $-$1.01 \\
 \end{tabular}
 \end{table}
 
-At wholesale price levels with an 80\% sell-back rate, V2G discharge is not economically viable. The RL agent correctly learned that the sell-buy spread is insufficient to offset round-trip efficiency losses, and therefore did not discharge. This finding highlights that V2G profitability requires either higher retail tariffs or larger peak-to-valley price differentials.
+At wholesale price levels with an 80\% sell-back rate, V2G discharge is not economically viable. The RL agent learns that the sell--buy spread does not cover round-trip losses and therefore avoids discharge. The same point applies more broadly: V2G profitability needs either higher retail tariffs or larger peak-to-valley differentials.
 
 \subsection{V2G Revenue Breakdown}
 \label{subsec:v2g_revenue}
 
-The absence of V2G discharge activity at wholesale prices indicates that the primary value of intelligent charging at these price levels comes from:
-\begin{enumerate}
-    \item \textbf{Load Shifting:} Moving EV charging to low-cost hours (midday coinciding with solar production)
-    \item \textbf{Grid Constraint Management:} Avoiding capacity violations through intelligent scheduling
-    \item \textbf{Renewable Alignment:} Absorbing surplus solar energy that would otherwise be exported
-\end{enumerate}
+With no V2G discharge at wholesale prices, intelligent charging still delivers value through load shifting (moving charging to cheap hours, including midday solar), grid constraint management (scheduling that avoids capacity violations), and renewable alignment (using surplus solar that would otherwise be exported).
 
 \subsection{V2G Trade-offs}
 \label{subsec:v2g_tradeoffs}
@@ -321,13 +275,7 @@ V2G-Enabled & 0.49 & 0.00 & 735.2 \\
 \end{tabular}
 \end{table}
 
-\textbf{Considerations:}
-\begin{itemize}
-    \item At wholesale prices, V2G does not increase battery cycling (no discharge observed)
-    \item Both scenarios show approximately 0.48--0.49 charge cycles per day (below 1 full cycle)
-    \item With an average of 0.48 daily cycles, annual cycling is approximately 120 cycles -- well within the 1{,}000--2{,}000 cycle battery lifetime
-    \item V2G cycling would increase under higher retail tariffs where discharge becomes profitable
-\end{itemize}
+Under wholesale prices, V2G does not add battery cycling because no discharge occurs. Both scenarios show about 0.48--0.49 charge cycles per day, i.e.\ less than one full cycle. At roughly 0.48 cycles per day, annual cycling is on the order of 120 cycles, which sits comfortably inside a 1{,}000--2{,}000-cycle battery lifetime. Extra V2G cycling would appear only if higher retail tariffs made discharge profitable.
 
 \section{Sensitivity Analysis}
 \label{sec:sensitivity}
@@ -353,12 +301,7 @@ High variation ($\pm$100\%) & 32.14 & 29.88 \\
 \end{tabular}
 \end{table}
 
-\textbf{Analysis:}
-\begin{itemize}
-    \item Flat rate: Minimal difference between methods (only renewable optimization)
-    \item High price variation: Larger benefit from intelligent scheduling
-    \item Smart charging value increases with price volatility
-\end{itemize}
+Under a flat tariff the two methods are nearly identical aside from renewable-oriented behavior. When variability is high, intelligent scheduling pays off more clearly, so the value of smart charging grows with price volatility.
 
 \subsection{Fleet Size Scaling}
 \label{subsec:sensitivity_fleet}
@@ -381,12 +324,7 @@ Performance with different fleet sizes:
 \end{tabular}
 \end{table}
 
-\textbf{Scalability Insights:}
-\begin{itemize}
-    \item Cost per vehicle decreases with fleet size (economies of scale)
-    \item Computational time grows super-linearly with fleet size due to RL state-space expansion
-    \item Grid capacity becomes more constraining with larger fleets
-\end{itemize}
+Cost per vehicle falls as the fleet grows, reflecting economies of scale. Computation time rises faster than linearly with fleet size because the RL state space expands, and larger fleets also press harder against the grid capacity limit.
 
 \section{Algorithm-Specific Insights}
 \label{sec:algorithm_insights}
@@ -396,13 +334,7 @@ Performance with different fleet sizes:
 
 \subsubsection{Learned Policy Characteristics}
 
-The trained RL agent exhibits intelligent behaviors:
-\begin{itemize}
-    \item Delays charging when prices are high and time permits
-    \item Prioritizes solar-aligned charging (midday)
-    \item Increases urgency as departure time approaches
-    \item In the V2G scenario, correctly learns that discharge is unprofitable at wholesale prices and avoids unnecessary cycling
-\end{itemize}
+The trained RL policy delays charging when prices are high if time remains, favors midday solar-aligned charging, and raises urgency as departure approaches. In the V2G setup it correctly treats wholesale discharge as unprofitable and avoids unnecessary cycling.
 
 \section{Renewable Energy Integration}
 \label{sec:renewable_integration}
@@ -427,12 +359,7 @@ RL & 58.8 & 51.5 & 7.2 & 100\% \\
 }
 \end{table}
 
-\textbf{Key Findings:}
-\begin{itemize}
-    \item EVs act as flexible loads, increasing solar self-consumption
-    \item Reduced grid exports during solar peak hours -- all 7.2 kWh surplus absorbed by EVs
-    \item Economic benefit: approximately €0.30 per day from avoided grid purchases using solar energy
-\end{itemize}
+EVs behave as flexible loads and lift solar self-consumption. During solar peaks, grid exports fall because the 7.2~kWh surplus is absorbed by the fleet. The economic side amounts to about €0.30 per day from avoided grid purchases of that solar energy.
 
 \section{Economic Analysis}
 \label{sec:economic_analysis}
@@ -479,11 +406,4 @@ Level 3 (V2G) & 25{,}000 & 40 & 625.0 & $-$24{,}827 \\
 }
 \end{table}
 
-\textbf{Assumptions:}
-\begin{itemize}
-    \item Level 1: Basic control system
-    \item Level 2: Advanced computing and optimization software
-    \item Level 3: Bidirectional chargers and V2G equipment
-    \item Discount rate: 5\%
-\end{itemize}
-
+The ROI comparison assumes Level~1 is a basic control system, Level~2 adds advanced computing and optimization software, Level~3 adds bidirectional chargers and V2G hardware, and a discount rate of 5\%.
