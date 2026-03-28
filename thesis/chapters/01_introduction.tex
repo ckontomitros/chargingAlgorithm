@@ -7,69 +7,25 @@
 \section{Background and Motivation}
 \label{sec:background}
 
-The global transition toward sustainable transportation has accelerated the adoption of electric vehicles (EVs). In 2023, global electric car sales neared 14 million and reached about 18\% of all cars sold, showing how quickly EVs are moving into the mass market \cite{iea_evo_2024}. As EV penetration grows, workplace charging becomes more important because it makes electric driving more convenient and affordable for employees and supports broader adoption \cite{doe_afdc_workplace}. At the same time, uncontrolled charging can stress the grid during peak hours, increase electricity costs, and leave on-site renewable energy underused. These problems are most visible in office buildings, where many vehicles connect at similar times and the electrical capacity is limited.
-
-Smart charging systems address these issues by coordinating EV charging with building energy use, renewable generation, and time-varying electricity prices. Office buildings are a natural setting because parking times are long, usage patterns are regular, and rooftop solar is common. Solar PV is also increasingly cost-competitive, making local generation a practical part of workplace charging strategies \cite{irena_rpgc_2023}.
-
-\section{Smart Charging Levels}
-\label{sec:smart_charging_levels}
-
-This thesis investigates multiple levels of charging intelligence. Each level adds coordination or control to the previous one, so we can compare benefits against added complexity. In this structure, the simple rule-based approach is the zero level.
-
-\subsection{Level 0: Simple Rule-Based Charging}
-\label{subsec:level0}
-
-Level~0 uses basic rules to guide charging. The rules are simple, such as using solar surplus first, honoring grid capacity limits, and allocating power in a predictable order. This approach is easy to run and yields reasonable performance without heavy computation.
-
-\subsection{Level 1: Intelligent Optimization}
-\label{subsec:level1}
-
-Level~1 uses optimization to compute better schedules. In this thesis, the main example is reinforcement learning, where a Q-learning agent improves charging decisions through trial and error. This level offers better performance but requires training and more complex implementation.
-
-\subsection{Level 2: Vehicle-to-Grid (V2G)}
-\label{subsec:level2}
-
-Level~3 adds bidirectional energy flow so EVs can discharge back to the building or grid during high-price periods. This enables potential revenue and grid services, but it also adds infrastructure cost and constraints to protect battery health and mobility needs.
-
-\section{Role of Renewable Energy}
-\label{sec:renewable_energy}
-
-Solar photovoltaic systems on office buildings can reduce charging costs and grid dependence. Solar production often peaks around midday, which aligns with typical workplace parking, so EVs can absorb on-site generation when it is available. This reduces grid purchases and helps lower peak demand, while also cutting emissions. Solar PV has become one of the lowest-cost new power options, which strengthens the case for integrating it with charging \cite{irena_rpgc_2023}. The main challenge is to coordinate charging with variable solar output while still meeting mobility needs and grid limits.
-
-\section{Benefits of Smart Charging in Office Buildings}
-\label{sec:benefits}
-
-Office buildings are a strong fit for smart charging because arrival and departure times are predictable, parking durations are long enough to shift charging, and solar production typically overlaps with working hours. A single building operator can manage both the facility and the chargers, which simplifies control and makes cost savings more direct.
+Recent climate regulations have led to a rise in the adoption of electric vehicles. More and more people are opting for an electric vehicle for their daily commute. According to studies, most of the time spent in commute is on the way to and from the office. Also, most people spend a third of their time in offices, and with them their cars, 
+which can be charged during the workday. The car batteries can also be used in times of peak consumption to give electricity back to the building or to the grid. Since the charging will happen throughout the day,  
+it is logical to create smart charging algorithms that can utilise information from solar power generation, pricing spreads throughout the day, and grid capacity limits in order to optimise the charging schedule. Office buildings also offer a huge rooftop space for the installation of solar panels; 
+the energy produced by these panels can be used both for the building's consumption as well as for the charging of the electric vehicles. The cost of electricity produced is zero, and this helps reduce the overall cost. As such, the utilization of renewable energy is the most important aspect of the charging algorithm. 
 
 \section{Literature Review}
 \label{sec:literature_review}
 
-\subsection{Smart EV Charging}
-\label{subsec:lit_smart_charging}
+Currently, there are many different algorithms that are used for the smart scheduling of the EV fleet. Early studies, such as Richardson \cite{richardson2012ev_ucd}, used linear programming in order to decide which vehicle will be charged and when in 15-minute intervals,
+taking into account network limitations. Further studies included the use of reinforcement learning to increase grid stability, and optimize for pricing and renewables utilization; several studies are included in this review \cite{qiu2023rl_ev_review}.
 
-Research on smart EV charging shows that coordinated scheduling can reduce costs and avoid grid stress compared with uncontrolled charging. Early studies such as Richardson et al. \cite{richardson2012electric} and Sun et al. \cite{sun2015optimal} formalized cost-minimizing schedules under grid constraints. Later work also explored decentralized and valley-filling strategies to manage peak demand while meeting user needs \cite{zhang2018smart}.
+\section{Smart Charging Levels}
+\label{sec:smart_charging_levels}
 
-\subsection{Optimization Algorithms}
-\label{subsec:lit_algorithms}
-
-Optimization for charging ranges from classical methods to learning-based control. Reinforcement learning is attractive because it can handle uncertainty and learn policies directly from interaction. Sutton and Barto provide the foundational framework \cite{sutton2018reinforcement}, while applications to energy management and EV charging highlight its practical use \cite{vandael2013reinforcement}. Deep RL further expands the approach by handling larger state spaces \cite{mnih2015human}.
-
-\subsection{Vehicle-to-Grid Technology}
-\label{subsec:lit_v2g}
-
-V2G technology enables bidirectional energy flow so EVs can provide grid services or earn revenue during high-price periods. Kempton and Tomi{\'c} established the basic revenue and capacity framework \cite{kempton2005vehicle}, and later studies examined control and aggregation strategies for services such as frequency regulation \cite{han2010development}. Reviews of V2G and related vehicle-to-x concepts highlight both the opportunity and the remaining technical and market barriers \cite{liu2019opportunities}.
-
-\subsection{Renewable Integration}
-\label{subsec:lit_renewable}
-
-Renewable integration studies show that combining solar PV with smart charging can improve self-consumption and reduce grid draw. An NREL analysis of commercial EV charging highlights that co-deploying PV and storage with charging infrastructure can lower utility costs when charging is coordinated with on-site generation \cite{nrel_ev_pv_2019}.
-
-\section{Research Objectives}
-\label{sec:objectives}
-
-The objectives are to develop models for intelligence levels 0--2, implement and compare a simple rule-based strategy and a Q-learning approach, quantify costs, renewable utilization, and constraint satisfaction, evaluate the added value of V2G, and provide practical guidance on which intelligence level offers the best cost--benefit balance for office buildings.
+The algorithms developed in this thesis are separated by their intelligence levels. Level 0 is a simple rule-based algorithm that prioritises solar renewable energy, respecting grid constraints and the target charging SOC of the EV battery; it charges without respecting future price levels. 
+Level 1 is a Q-learning algorithm that uses a reward function to include information about price levels and also the availability of solar energy. Level 2 is a Q-learning algorithm that also includes the action of discharging energy back to the grid. The remaining chapters focus on different parts of the algorithms.
 
 \section{Thesis Structure}
 \label{sec:structure}
 
-The remainder of this thesis is organized as follows. Chapter~2 presents the models and algorithms for each intelligence level. Chapter~3 describes the office building case study, data sources, and simulation setup. Chapter~4 reports the results and comparative analysis. Chapter~5 summarizes the findings and outlines recommendations and future work.
+Chapter~2 focuses more on the models that describe the office, the EVs, the grid, and the solar panels. Chapter~3 focuses on the data for the office building consumption, electricity pricing, and solar generation. Chapter~4 focuses on the simulation using each algorithm, collecting and comparing the results.
+Chapter~5 focuses on the conclusion of the results and recommendations for future work.

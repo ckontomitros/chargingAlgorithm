@@ -11,7 +11,7 @@
     % \includegraphics[width=0.3\textwidth]{figures/university_logo.png}\\[1cm]
     
     {\LARGE \textbf{National Technical University of Athens}}\\[0.5cm]
-    {\large School of Electrical and Computer Engineering}\\[2cm]
+    {\large Department of Electrical and Computer Engineering}\\[2cm]
     
     {\huge \textbf{Modeling Smart Electric Vehicle Charging}}\\[0.5cm]
     {\Large \textbf{A Multi-Level Intelligence Approach with Renewable Energy Integration}}\\[3cm]
@@ -28,15 +28,22 @@
     
 \end{titlepage}
 
-% Abstract (Greek)
+% Abstract (Greek) — must be in a Greek language block so fonts/encodings apply (see main.tex / main_en.tex).
+\begin{greekabstract}
 \chapter*{Περίληψη}
 \addcontentsline{toc}{chapter}{Περίληψη}
 
-[Γράψε εδώ την περίληψη στα ελληνικά - 300-500 λέξεις]
+Η παρούσα διπλωματική εργασία εξετάζει την έξυπνη φόρτιση ηλεκτρικών οχημάτων σε κτίρια γραφείων με ενσωμάτωση φωτοβολταϊκών, με στόχο να αξιολογήσει πώς διαφορετικά επίπεδα ευφυίας επηρεάζουν το κόστος, τη χρήση της τοπικής ανανεώσιμης ενέργειας και την τήρηση λειτουργικών περιορισμών δικτύου. Η φόρτιση στον χώρο εργασίας αποκτά όλο και μεγαλύτερη σημασία, καθώς η αύξηση των ηλεκτρικών οχημάτων επιβαρύνει τα κτιριακά και δικτυακά συστήματα, ιδιαίτερα όταν η φόρτιση πραγματοποιείται χωρίς κάποιο αυτοματισμό. Τα κτίρια γραφείων αποτελούν κατάλληλο πεδίο εφαρμογής, επειδή συνδυάζουν προβλέψιμα ωράρια εργασίας, μεγάλες περιόδους στάθμευσης και δυνατότητα αξιοποίησης ενέργειας από φωτοβολταϊκά.
 
-Η παρούσα διπλωματική εργασία διερευνά την εφαρμογή έξυπνων συστημάτων φόρτισης ηλεκτρικών οχημάτων σε κτίρια γραφείων με ενσωμάτωση ανανεώσιμων πηγών ενέργειας. Αναλύονται διαφορετικά επίπεδα "ευφυίας" από απλούς κανόνες έως προηγμένους αλγορίθμους βελτιστοποίησης και τεχνολογία Vehicle-to-Grid (V2G)...
+Για τον σκοπό αυτό αναπτύχθηκε ένα μοντέλο που περιλαμβάνει το ηλεκτρικό φορτίο του κτιρίου, την παραγωγή από φωτοβολταϊκό σύστημα, αποθήκευση ενέργειας, στόλο ηλεκτρικών οχημάτων και περιορισμούς δικτύου. Η μεθοδολογία βασίζεται σε μελέτη περίπτωσης με ρεαλιστικά δεδομένα κατανάλωσης, ηλιακής ακτινοβολίας και τιμών ηλεκτρικής ενέργειας. Εξετάζονται μια απλή στρατηγική βασισμένη σε κανόνες και μια στρατηγική ενισχυτικής μάθησης με Q-learning, ενώ διερευνάται και η επέκταση σε λειτουργία Vehicle-to-Grid, όπου τα οχήματα μπορούν να επιστρέφουν ενέργεια προς το κτίριο ή το δίκτυο. Η αξιολόγηση πραγματοποιείται με οικονομικά, ενεργειακά, λειτουργικά και υπολογιστικά κριτήρια.
+
+Τα αποτελέσματα δείχνουν ότι η συντονισμένη φόρτιση βελτιώνει τη συνολική λειτουργία του συστήματος σε σχέση με μια απλή ανελαστική στρατηγική. Η προσέγγιση με απλούς κανόνες επιτυγχάνει αξιόπιστη λειτουργία με χαμηλή πολυπλοκότητα και πλήρη συμμόρφωση με τους βασικούς περιορισμούς. Η προσέγγιση με Q-learning προσφέρει επιπλέον βελτίωση στο οικονομικό αποτέλεσμα και καλύτερη διαχείριση της ενέργειας από το δίκτυο, αλλά απαιτεί μεγαλύτερη υπολογιστική προσπάθεια και διαδικασία εκπαίδευσης. Η συμβολή των φωτοβολταϊκών αποδεικνύεται θετική, καθώς μειώνει την εξάρτηση από το δίκτυο και ενισχύει την τοπική αξιοποίηση ανανεώσιμης ενέργειας, αν και το συνολικό όφελος εξαρτάται από το μέγεθος του συστήματος σε σχέση με τη ζήτηση φόρτισης.
+
+Η ανάλυση του Vehicle-to-Grid δείχνει ότι η τεχνική δυνατότητα δεν μεταφράζεται απαραίτητα σε οικονομικό όφελος υπό όλες τις συνθήκες αγοράς. Όταν η διαφορά μεταξύ τιμών αγοράς και πώλησης δεν είναι επαρκής, η αποφόρτιση δεν είναι ελκυστική και τα οφέλη του V2G παραμένουν περιορισμένα. Συνολικά, η εργασία καταλήγει ότι η έξυπνη φόρτιση με ενσωμάτωση φωτοβολταϊκών αποτελεί μια πρακτική και αποτελεσματική λύση για κτίρια γραφείων, ενώ οι πιο προηγμένες στρατηγικές ελέγχου και το V2G αποκτούν αξία κυρίως όταν υποστηρίζονται από κατάλληλες τιμολογιακές και λειτουργικές συνθήκες.
 
 \textbf{Λέξεις κλειδιά:} Ηλεκτρικά οχήματα, έξυπνη φόρτιση, ανανεώσιμες πηγές ενέργειας, βελτιστοποίηση, Vehicle-to-Grid, κτίρια γραφείων
+
+\end{greekabstract}
 
 \newpage
 
@@ -44,9 +51,13 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-[Write your abstract in English - 300-500 words]
+This thesis examines the smart charging of electric vehicles (EVs) in office buildings with integrated photovoltaics (PV), aiming to evaluate how different levels of intelligence affect costs, the utilization of local renewable energy, and adherence to grid operational constraints. Workplace charging is becoming increasingly important, as the growth of EVs places a burden on building and grid systems, particularly when charging occurs without automation. Office buildings serve as an ideal field of application because they combine predictable working hours, long parking durations, and the potential to utilize energy from PV systems.
 
-This diploma thesis investigates the application of smart electric vehicle (EV) charging systems in office buildings with renewable energy integration. Different levels of intelligence are analyzed, ranging from simple rule-based approaches to advanced optimization algorithms and Vehicle-to-Grid (V2G) technology...
+To this end, a model was developed that includes the building's electrical load, PV system generation, energy storage, an EV fleet, and grid constraints. The methodology is based on a case study using realistic consumption, solar radiation, and electricity price data. A simple rule-based strategy and a reinforcement learning strategy using Q-learning are examined, while the expansion into Vehicle-to-Grid (V2G) operation—where vehicles can return energy to the building or the grid—is also explored. The evaluation is conducted based on economic, energetic, operational, and computational criteria.
+
+The results indicate that coordinated charging improves overall system performance compared to a simple inelastic strategy. The rule-based approach achieves reliable operation with low complexity and full compliance with basic constraints. The Q-learning approach offers further improvement in economic outcomes and better management of grid energy but requires greater computational effort and a training process. The contribution of photovoltaics proves positive, as it reduces grid dependence and enhances local renewable energy utilization, although the overall benefit depends on the system's size relative to charging demand.
+
+The analysis of Vehicle-to-Grid shows that technical capability does not necessarily translate into economic benefit under all market conditions. When the price spread between buying and selling is insufficient, discharging is unattractive, and V2G benefits remain limited. Overall, the thesis concludes that smart charging with PV integration is a practical and effective solution for office buildings, while more advanced control strategies and V2G gain value primarily when supported by appropriate pricing and operational conditions.
 
 \textbf{Keywords:} Electric vehicles, smart charging, renewable energy, optimization, Vehicle-to-Grid, office buildings
 
@@ -55,8 +66,6 @@ This diploma thesis investigates the application of smart electric vehicle (EV) 
 % Acknowledgments
 \chapter*{Acknowledgments}
 \addcontentsline{toc}{chapter}{Acknowledgments}
-
-[Write your acknowledgments here]
 
 I would like to express my sincere gratitude to my supervisors Alexandros Flamos and Dimitris Fotopoulos for their guidance and support throughout this research...
 

@@ -1,2 +1,31 @@
-Recent climate regulations have led to the rise of the adoption of electric vehicles. More and more people are opting for an electric vehicle for their daily commute. According to studies most of the time spend in commute is on the way to and from the office. Also most people spend a third of their time in offices, so 
-it is logical to create smart charging algorithms that can utilise information from solar power generation, pricing spreads around the day and grid capacity limits in order to optimise the charging schedule.
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background and Motivation}
+\label{sec:background}
+
+Recent climate regulations have led to the rise of the adoption of electric vehicles. More and more people are opting for an electric vehicle for their daily commute. According to studies most of the time spend in commute is on the way to and from the office. Also most people spend a third of their time in offices and with them their cars, 
+which can be charged during the work day. The car batteries can be also used in time of peak consumption to give electricity back to the building or to the grid. Since the charging will happne throughout the day,  
+it is logical to create smart charging algorithms that can utilise information from solar power generation, pricing spreads around the day and grid capacity limits in order to optimise the charging shedule. Office building offer also a huge rooftop space for the installation of solar panels, 
+energy produced by these panels can be used both for the building consumption as well as for the charging of the electric vehicles. The cost of electricity produced is zero and this helps reduce the overall cost. As such the utilization of renewable energy is the most important aspect of the charging algorithm. 
+
+\section{Literature Review}
+\label{sec:literature_review}
+
+Currently there are many different algorithms that are used for the smart scheduling of the EV fleet. Early studies such as Richardson \cite{richardson2012ev_ucd} used linear programming in order to decide which vehicle will be charged and when in 15 min intervals,
+taking into account network limitations. Further studies included the use of reinforcement learning to increase grid stability, optimize for pricing and renewables utilization, several studies are included in this paper \cite{qiu2023rl_ev_review}
+
+\section{Smart Charging Levels}
+\label{sec:smart_charging_levels}
+
+The algorithms developed in this thesis are separated by their inteligence levels. Level 0 is a simple rule based algorithm that just prioritises solar renewable energy, respecting grid constraints and also target charging SOC of the EV battery, it charges without respecting future price levels. 
+Level 1 is a Q-learning algorithm that uses a reward function to include information about the price levels and also the availability of solar energy. Level 2 is a Q-learning algorithm that includes also the action of discharging energy back to the grid.The rest chapters focus on different parts of the algorithms.
+
+\section{Thesis Structure}
+\label{sec:structure}
+
+Chapter~2 focus more on the model that describe the office the evs the grid and the solar panels. Chapter~3 focus on the data for the office building consumption, electricity pricing and solar generation.  Chapter~4 focus on the simulation using each algorithm, collecting and comparing the results.
+Chapter~5 focus on the conclusion of the results and the recommendations for the future work.
