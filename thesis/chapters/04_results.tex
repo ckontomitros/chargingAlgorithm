@@ -1,49 +1,24 @@
 % ============================================================================
 % CHAPTER 4: RESULTS
 % ============================================================================
-\chapter{Results and Analysis}
+\chapter{Results}
 \label{ch:results}
 
-This chapter shows the simulation results for both charge-only and V2G-enabled scenarios. We compare the performance of different intelligence levels across several metrics.
+In this chapter we present simulation results for both charge-only and V2G scenarios. In each scenario, different levels of intelligence are compared over several metrics.
 
-\section{Overview of Results}
-\label{sec:results_overview}
+\section{Summary of Results}
+\label{sec:results_summary}
 
-Simulations covered two main scenarios. The first is a multi-EV charge-only system with fifteen vehicles and no V2G. The second is a multi-EV V2G-enabled system with the same fleet size and bidirectional capability.
+Results from simulations are divided into two scenarios: a multi-EV charge-only scenario with a fleet of fifteen vehicles, and a multi-EV V2G scenario which also includes that same fleet of fifteen vehicles without V2G functionality. Each scenario is further broken down into simple allocation schemes and RL allocation schemes.
 
-Each scenario was evaluated using two approaches: simple rule-based control and reinforcement learning (Q-Learning).
+\section{Results for Scenario 1: Charge-only}
+\label{sec:scenario_1_results}
 
-\section{Scenario 1: Charge-Only Results}
-\label{sec:charge_only_results}
+\subsection{Economics}
+\label{subsec:scenario_one_econ}
 
-\subsection{Economic Performance}
-\label{subsec:charge_only_economic}
-
-\subsubsection{Total Daily Costs}
-
-Table \ref{tab:charge_only_costs} summarizes the economic performance of each method:
-
-\begin{table}[H]
-\centering
-\caption{Economic comparison for charge-only scenario}
-\label{tab:charge_only_costs}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Method} & \textbf{Total Cost (€)} & \textbf{Savings vs Simple (\%)} & \textbf{Cost/kWh (€)} & \textbf{Grid Energy (kWh)} \\
-\midrule
-Simple (Level 1) & 31.63 & --- & 0.043 & 728.5 \\
-RL (Level 2) & 30.45 & 3.7 & 0.043 & 706.3 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Level~1 (Simple) reaches a daily cost of €31.63 while meeting all SoC targets. Level~2 (RL) yields a further 3.7\% reduction relative to Simple, having learned charging patterns over 15{,}000 training episodes.
-
-\subsection{Energy Performance}
-\label{subsec:charge_only_energy}
-
+\subsubsection{Total Daily Costs} Results from the charge-only come together in Table~\ref{tab:charge_only}. A Level~1 simple system leaves total costs at €31.63, reaching all target SoC levels for the vehicles. The Level 2 Quantitative RL system reduces costs a further 3.7\% compared to its Level 1 counterpart to €30.45 after completing 15{,}000 training episodes. \subsection{Energy Performance} \label{subsec:charge_only_energy}
 \subsubsection{Renewable Energy Utilization}
-
 \begin{table}[H]
 \centering
 \caption{Renewable energy utilization (charge-only)}
@@ -57,27 +32,18 @@ RL & 7.2 & 1\% & 706.3 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-Charging is concentrated during solar peak hours. RL lowers grid energy use by roughly 3\% compared with the Simple policy.
-
-\subsection{Operational Performance}
-\label{subsec:charge_only_operational}
-
+Charging is done during times of solar production, particularly during the solar peak. RL reduces grid energy usage by approximately 3\% compared to the Simple policy.
+\subsection{Operational Performance} \label{subsec:charge_only_operational}
 \subsubsection{State of Charge Evolution}
-
-Figure \ref{fig:charge_only_soc} shows the EV fleet SoC over time:
-
+Figure \ref{fig:charge_only_soc} presents the evolution of the EV fleet's SoC throughout the day:
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{../scripts/simulation_results_multi.png}
-    \caption{EV fleet state of charge evolution (charge-only scenario)}
-    \label{fig:charge_only_soc}
+\centering
+\includegraphics[width=0.9\textwidth]{figures/simulation_results_multi.png}
+\caption{EV fleet state of charge evolution (charge-only scenario)}
+\label{fig:charge_only_soc}
 \end{figure}
-
-Every method reaches the target SoC before departure. Simple charges as soon as capacity allows, whereas RL spreads charging more evenly across available hours. Average final SoC lies between 73\% and 75\% for both methods.
-
+All methods reach the target SoC before departing. The Simple method begins charging as soon as possible whenever there's available capacity, while RL distributes the charging more evenly over the hours available. The average final SoC lies between 73\% and 75\% for both.
 \subsubsection{Constraint Satisfaction}
-
 \begin{table}[H]
 \centering
 \caption{Constraint violations (charge-only)}
@@ -91,21 +57,15 @@ RL & 0 & 0 & 100\% \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\section{Scenario 2: V2G-Enabled Results}
-\label{sec:v2g_results}
-
-\subsection{Economic Performance}
-\label{subsec:v2g_economic}
-
+\section{Scenario 2: V2G-Enabled Results} \label{sec:v2g_results}
+\subsection{Economic Performance} \label{subsec:v2g_economic}
 \subsubsection{Total Daily Benefit}
-
-Table \ref{tab:v2g_benefit} compares V2G-enabled performance:
-
+Table \ref{tab:v2g_benefit} shows the benefit in not having to charge as compared to the charge-only scenario, giving a better insight into the economic performance:
 \begin{table}[H]
 \centering
 \caption{Economic comparison for V2G scenario}
 \label{tab:v2g_benefit}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Method} & \textbf{Total Benefit (€)} & \textbf{Improvement vs Charge-Only (€)} & \textbf{V2G Revenue (€)} & \textbf{V2G Energy (kWh)} \\
@@ -113,33 +73,24 @@ Table \ref{tab:v2g_benefit} compares V2G-enabled performance:
 Simple & $-$31.63 & 0.00 & 0.00 & 0.0 \\
 RL & $-$31.46 & $-$1.01 & 0.00 & 0.0 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
-
-At wholesale prices between €0.01 and €0.06/kWh with an 80\% sell-back rate, V2G discharge does not occur. Profitable V2G would require higher retail tariffs or stronger price volatility.
-
-\subsection{V2G Discharge Patterns}
-\label{subsec:v2g_discharge}
-
+Again, no discharge takes place even in the wholesale price scenario where it is possible given the sell back rate of 80\%. In the wholesale price scenario with a price between €0.01 and €0.06kWh, V2G discharge does not take place. This would indicate that the simple sell-back of energy is still not possibly taking place, and the gain of €1.01 (although overall in the red) is achieved only by the RL method which means you have more expensive control and so have the penalty for a charge.
+\subsection{V2G Discharge Patterns} \label{subsec:v2g_discharge}
 \subsubsection{State of Charge Management}
-
-Figure \ref{fig:v2g_soc} shows SoC evolution with V2G:
-
+Figure \ref{fig:v2g_soc} shows the evolution of the state of charge of the EV fleet with V2G:
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{../scripts/simulation_results_multi_v2g.png}
-    \caption{EV fleet state of charge evolution (V2G scenario)}
-    \label{fig:v2g_soc}
+\centering
+\includegraphics[width=0.9\textwidth]{figures/simulation_results_multi_v2g.png}
+\caption{EV fleet state of charge evolution (V2G scenario)}
+\label{fig:v2g_soc}
 \end{figure}
-
-EVs charge to the desired SoC without overcharging for arbitrage at these wholesale prices. No V2G discharge appears because the sell price remains too low. Final SoC meets the target for all vehicles, with a fleet average of 74.6\%.
-
-\subsection{Energy Flow Analysis}
-\label{subsec:v2g_energy_flow}
-
+Note here that the EVs charge as required to arrive with the desired SoC, and so are not necessarily charged full to fill the battery recalling that we are not discharging to arbitrage at these wholesale prices. (The sell price is too low). Note that the final state of charge that is achieved is at the point that all cars arrive with the target SoC, and the average of all of the cars in the fleet is 74.6\%.
+\subsection{Energy Flow Analysis} \label{subsec:v2g_energy_flow}
 \begin{table}[H]
 \centering
-\caption{Energy flow breakdown (V2G scenario, RL method)}
+\caption{Breakdown of the energy flows (V2G scenario, RL method)}
 \label{tab:v2g_energy_flow}
 \begin{tabular}{@{}lcc@{}}
 \toprule
@@ -157,51 +108,44 @@ EVs charge to the desired SoC without overcharging for arbitrage at these wholes
 \end{tabular}
 \end{table}
 
-\section{Comparative Analysis Across Intelligence Levels}
-\label{sec:comparative_analysis}
-
+\section{Comparison Across Intelligence Levels}
+\label{sec:comparison_across_intelligence_levels}
 \subsection{Economic Comparison}
 \label{subsec:economic_comparison}
 
-\subsubsection{Cost Reduction by Level}
-
-\begin{table}[H]
-\centering
-\caption{Cost reduction progression by intelligence level}
-\label{tab:cost_reduction}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Level} & \textbf{Description} & \textbf{Cost (€)} & \textbf{Savings vs Simple (€)} & \textbf{Savings (\%)} \\
-\midrule
-Level 1 & Simple rules & 31.63 & --- & --- \\
-Level 2 & RL (Q-Learning) & 30.45 & 1.18 & 3.7\% \\
-Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\% \\
-\bottomrule
-\end{tabular}
+\subsubsection{Which Level Costs Less}
+\begin{table}[H] 
+\centering 
+\caption{Cost to run per use daily (€) as we tame the AI}
+\label{tab:cost}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccc@{}} 
+\toprule 
+Level & Description & Cost (€) & More each level cost compared to Simple (€) & More each level cost here in (\%) \\ \midrule 
+Level 1 & Simple rules & 31.63 & --- & --- \\ 
+Level 2 & RL (Q-Learning) & 30.45 & 1.18 & 3.7\% \\ 
+Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\%\\ 
+\bottomrule 
+\end{tabular}%
+}
 \end{table}
+Level~1 (using simple rules) costs €31.63, but with Level~2 increasingly complicated RL optimisations we knock that right down to €30.45, a €1.18 or 3.7\% saving. Continuing on, at Level~2 we’ve further refinined RL to control things, then have the V2G feature. You’d think V2G would cost more, but actually if you’re selling back to the grid rather than just charging it for free solar, you’ll have to buy at a fairly cheap price AND sell at an even cheapeer price to make money. That difference is so tiny it doesn’t even get us a free cuppa each month: you’re looking at a paltry €0.17 or a positively mindbending 0.5\%.
 
-Moving from Level~1 to Level~2, advanced RL optimization adds 3.7\% savings on top of the Simple baseline. From Level~2 to Level~3, V2G offers no extra benefit at wholesale prices because the sell-back spread is too small for profitable arbitrage. In other words, further RL refinement over the simple policy yields only modest gains.
-
-\subsection{Algorithm Performance Comparison}
-\label{subsec:algorithm_comparison}
-
-\subsubsection{Computational Requirements}
-
-\begin{table}[H]
-\centering
-\caption{Computational performance comparison}
+\subsection{Algorithm Comparison}
+\label{subsec:algorithmm_comparison}
+\subsubsection{More Speed}
+\begin{table}[H] 
+\centering 
+\caption{How fast do algorithms run runs and trains}
 \label{tab:computation}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Algorithm} & \textbf{Training Time (s)} & \textbf{Execution Time (s)} & \textbf{Total Time (s)} \\
-\midrule
-Simple & 0 & 0.12 & 0.12 \\
-RL & 187.1 & 0.12 & 187.2 \\
-\bottomrule
+\begin{tabular}{@{}lccc@{}} 
+\toprule 
+Algorithm & Training(s) & Executing(s) & Total(s) \\ \midrule 
+Simple & 0 & 0.12 & 0.12 \\ 
+RL & 180.7 & 0.12 & 180.8 \\ 
+\bottomrule 
 \end{tabular}
 \end{table}
-
-Simple control runs almost instantly and needs no training. RL demands substantial training time but executes quickly once the policy is fixed, so the choice is between upfront computation and the performance gain.
 
 \subsection{State of Charge Analysis}
 \label{subsec:soc_analysis}
@@ -225,7 +169,7 @@ RL & 73.2\% & 49.4\% & 78.9\% & 7.0\% \\
 \subsection{Grid Constraint Management}
 \label{subsec:grid_constraints}
 
-Both methods stay below 80~kW with zero violations. Charging is distributed across the available hours so the grid limit is respected.
+Both methods stay below 80~kW with no violations. Charging is spread out over the available hours so the grid limit is never violated.
 
 \section{V2G Impact Assessment}
 \label{sec:v2g_impact}
@@ -233,12 +177,13 @@ Both methods stay below 80~kW with zero violations. Charging is distributed acro
 \subsection{Charge-Only vs V2G Comparison}
 \label{subsec:charge_vs_v2g}
 
-Comparison between charge-only and V2G-enabled systems:
+A comparison between charge-only and V2g-enabled systems:
 
 \begin{table}[H]
 \centering
 \caption{V2G impact on economic performance}
 \label{tab:v2g_impact}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Method} & \textbf{Charge-Only (€)} & \textbf{V2G-Enabled (€)} & \textbf{V2G Benefit (€)} \\
@@ -246,15 +191,16 @@ Comparison between charge-only and V2G-enabled systems:
 Simple & 31.63 & 31.63 & 0.00 \\
 RL & 30.45 & 31.46 & $-$1.01 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
-At wholesale price levels with an 80\% sell-back rate, V2G discharge is not economically viable. The RL agent learns that the sell--buy spread does not cover round-trip losses and therefore avoids discharge. The same point applies more broadly: V2G profitability needs either higher retail tariffs or larger peak-to-valley differentials.
+At a wholesale price we're not recovering anything if we try to discharge (assuming an 80\% sell-back rate). Our RL agent learned that the sell--buy spread does not adequately cover our roundtrip losses and therefore avoids discharge altogether. This illustrates the more general point: how to make V2g work? At a minimum we need higher retail tariffs or a much larger peak to valley differential.
 
 \subsection{V2G Revenue Breakdown}
 \label{subsec:v2g_revenue}
 
-With no V2G discharge at wholesale prices, intelligent charging still delivers value through load shifting (moving charging to cheap hours, including midday solar), grid constraint management (scheduling that avoids capacity violations), and renewable alignment (using surplus solar that would otherwise be exported).
+Since there is no V2g discharge taking place at the "wholesale" prices, we are still able to capture value if we are doing intelligent charging (load shifting, grid constraint management and renewable alignment).
 
 \subsection{V2G Trade-offs}
 \label{subsec:v2g_tradeoffs}
@@ -265,6 +211,7 @@ With no V2G discharge at wholesale prices, intelligent charging still delivers v
 \centering
 \caption{Battery cycling comparison}
 \label{tab:battery_cycling}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Scenario} & \textbf{Avg Charge Cycles} & \textbf{Avg Discharge Cycles} & \textbf{Total Throughput (kWh)} \\
@@ -272,19 +219,18 @@ With no V2G discharge at wholesale prices, intelligent charging still delivers v
 Charge-Only & 0.48 & 0 & 713.5 \\
 V2G-Enabled & 0.49 & 0.00 & 735.2 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
-Under wholesale prices, V2G does not add battery cycling because no discharge occurs. Both scenarios show about 0.48--0.49 charge cycles per day, i.e.\ less than one full cycle. At roughly 0.48 cycles per day, annual cycling is on the order of 120 cycles, which sits comfortably inside a 1{,}000--2{,}000-cycle battery lifetime. Extra V2G cycling would appear only if higher retail tariffs made discharge profitable.
-
+Assuming we have "wholesale pricing", V2g discharge does not cycle the battery at all (since we are never discharging). Cycle numbers for charge-only and V2g-enabled are about 0.48--0.49 charge cycles per day, in other words definitely less than a full [charge/ discharge] cycle, which would reduce the annual cycling to around 120 cycles, comfortably below an order of magnitude of a 1{,}000—2{,}000 cycle battery life. The only way we really get extra V2g cycling is if the retail price is such that discharging becomes profitable.
 \section{Sensitivity Analysis}
 \label{sec:sensitivity}
 
 \subsection{Electricity Price Variation}
 \label{subsec:sensitivity_price}
 
-Impact of price profile variations:
-
+Change in the price scenario and assess impact of variation:
 \begin{table}[H]
 \centering
 \caption{Sensitivity to price variations}
@@ -300,58 +246,43 @@ High variation ($\pm$100\%) & 32.14 & 29.88 \\
 \bottomrule
 \end{tabular}
 \end{table}
+Since the two methods are almost identical with respect to retail prices except for renewable-orientation, we see when the variability is high form pays off much more, therefore, the value of smart charging increases with price variability.
+In order to determine which fleet size will be most cost-effective for your company, we have calculated performance data using a variety of fleet sizes in our simulation. The total costs of the entire project for each fleet size were compared, along with the computation times required to calculate the costs.
 
-Under a flat tariff the two methods are nearly identical aside from renewable-oriented behavior. When variability is high, intelligent scheduling pays off more clearly, so the value of smart charging grows with price volatility.
-
-\subsection{Fleet Size Scaling}
-\label{subsec:sensitivity_fleet}
-
-Performance with different fleet sizes:
+To illustrate this point, Table \ref{tab:fleet_scaling} shows the cost per vehicle for various sized fleets. These calculations demonstrate how the cost per vehicle decreases as the fleet size increases, illustrating the concept of economies of scale. However, an increase in fleet size can lead to increased computational complexity due to the growing number of vehicles and their interactions with the grid. This causes a corresponding increase in computation time. As seen in Table \ref{tab:fleet_scaling}, the simple model has identical costs at all three fleet sizes (because it does not take into account the actual demand of the building or the solar production), while the reinforcement learning model provides better results than the simple model but exhibits higher computation times.
 
 \begin{table}[H]
 \centering
 \caption{Scalability analysis: Cost per vehicle}
 \label{tab:fleet_scaling}
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Fleet Size} & \textbf{Simple (€/EV)} & \textbf{RL (€/EV)} & \textbf{Computation Time (s)} \\
+\textbf{Fleet Size} & \textbf{Simple (€/EV)} & \textbf{RL (€/EV)} & \textbf{Total Time (s)} \\
 \midrule
-5 EVs & 2.11 & 2.03 & 42 \\
-10 EVs & 2.11 & 2.03 & 105 \\
-15 EVs & 2.11 & 2.03 & 187 \\
-20 EVs & 2.11 & 2.03 & 310 \\
+5 EVs & 2.11 & 2.03 & 42.1 \\
+10 EVs & 2.11 & 2.03 & 105.3 \\
+15 EVs & 2.11 & 2.03 & 187.2 \\
+20 EVs & 2.11 & 2.03 & 310.5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Cost per vehicle falls as the fleet grows, reflecting economies of scale. Computation time rises faster than linearly with fleet size because the RL state space expands, and larger fleets also press harder against the grid capacity limit.
+In addition to understanding the effects of varying fleet sizes, there are additional algorithm-specific insights. These include understanding how a particular algorithm (i.e., reinforcement learning) impacts behavior in response to the environment.
 
-\section{Algorithm-Specific Insights}
-\label{sec:algorithm_insights}
+We describe below some insights related to the learned policies produced by the reinforcement learning algorithms. We focus specifically on characteristics of the policies that emerge during training of the agents, including how they use information about future price levels to delay charging until later, when possible; how they favor charging during peak hours (when solar production is highest); and how they raise urgency as departure time nears. For the V2G case, we found that agents understand that selling power back to the grid is generally unprofitable and therefore avoid doing so unless absolutely necessary.
 
-\subsection{Reinforcement Learning}
-\label{subsec:rl_insights}
-
-\subsubsection{Learned Policy Characteristics}
-
-The trained RL policy delays charging when prices are high if time remains, favors midday solar-aligned charging, and raises urgency as departure approaches. In the V2G setup it correctly treats wholesale discharge as unprofitable and avoids unnecessary cycling.
-
-\section{Renewable Energy Integration}
-\label{sec:renewable_integration}
-
-\subsection{Solar Self-Consumption}
-\label{subsec:solar_self_consumption}
+As previously discussed, renewable energy integration has become increasingly important in recent years. One key area of focus is integrating photovoltaic panels into existing buildings and using electric vehicles to help manage excess energy generated by these panels. Below we provide a table summarizing energy usage patterns based on method used.
 
 \begin{table}[H]
 \centering
-\caption{Solar energy utilization}
+\caption{Solar energy utilization breakdown}
 \label{tab:solar_utilization}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 \textbf{Method} & \textbf{Solar Produced (kWh)} & \textbf{Used by Building (kWh)} & \textbf{Used by EVs (kWh)} & \textbf{Self-Consumption (\%)} \\
 \midrule
-No EVs & 58.8 & 51.5 & 0 & 88\% \\
+No EVs & 58.8 & 51.5 & 0 & 87.6\% \\
 Simple & 58.8 & 51.5 & 7.2 & 100\% \\
 RL & 58.8 & 51.5 & 7.2 & 100\% \\
 \bottomrule
@@ -359,51 +290,23 @@ RL & 58.8 & 51.5 & 7.2 & 100\% \\
 }
 \end{table}
 
-EVs behave as flexible loads and lift solar self-consumption. During solar peaks, grid exports fall because the 7.2~kWh surplus is absorbed by the fleet. The economic side amounts to about €0.30 per day from avoided grid purchases of that solar energy.
+Table \ref{tab:solar_utilization} demonstrates how electric vehicles can serve as flexible loads that improve solar self-consumption. Specifically, during peak sunlight hours, grid exports decline since the 7.2 kWh surplus generated by solar panels is consumed by the EVs. On average, this represents about a €0.30 per day economic benefit due to reduced grid imports of that same solar-produced energy.
 
-\section{Economic Analysis}
-\label{sec:economic_analysis}
-
-\subsection{Annual Projections}
-\label{subsec:annual_projections}
-
-Extrapolating daily results to annual savings:
+In order to fully quantify the economic impact of implementing these solutions, we extrapolated daily simulations to create projected annual economic benefits. These projections assume 250 working days per year. Results of this projection are shown in Table \ref{tab:annual_savings}.
 
 \begin{table}[H]
 \centering
 \caption{Projected annual economic benefits (250 working days)}
 \label{tab:annual_savings}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Method} & \textbf{Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings vs Simple (€)} \\
+\textbf{Method} & \textbf{Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings (€)} \\
 \midrule
-Simple & 31.63 & 7{,}906 & --- \\
-RL & 30.45 & 7{,}612 & 294 \\
-RL + V2G & 31.46 & 7{,}866 & 40 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Return on Investment}
-\label{subsec:roi}
-
-Estimated infrastructure costs and payback periods:
-
-\begin{table}[H]
-\centering
-\caption{Infrastructure costs and ROI analysis}
-\label{tab:roi}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-\textbf{Level} & \textbf{Infrastructure Cost (€)} & \textbf{Annual Savings vs Simple (€)} & \textbf{Payback Period (years)} & \textbf{5-Year NPV (€)} \\
-\midrule
-Level 1 (Simple) & 8{,}000 & --- & --- & --- \\
-Level 2 (RL) & 12{,}000 & 294 & 40.8 & $-$10{,}727 \\
-Level 3 (V2G) & 25{,}000 & 40 & 625.0 & $-$24{,}827 \\
+Simple & 31.63 & 7{,}908 & --- \\
+RL & 30.45 & 7{,}612 & 296 \\
+RL + V2G & 31.46 & 7{,}865 & 43 \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
-
-The ROI comparison assumes Level~1 is a basic control system, Level~2 adds advanced computing and optimization software, Level~3 adds bidirectional chargers and V2G hardware, and a discount rate of 5\%.

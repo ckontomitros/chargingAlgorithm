@@ -5,7 +5,7 @@ MAIN = main
 
 # LaTeX compiler
 LATEX = xelatex
-BIBTEX = biber
+BIBTEX = bibtex
 
 # Compilation flags
 LATEX_FLAGS = -interaction=nonstopmode -halt-on-error
@@ -18,7 +18,7 @@ all: $(MAIN).pdf
 $(MAIN).pdf: $(MAIN).tex chapters/*.tex references.bib $(wildcard figures/*.png)
 	@echo "First LaTeX pass..."
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
-	@echo "Running biber for bibliography..."
+	@echo "Running bibtex for bibliography..."
 	$(BIBTEX) $(MAIN)
 	@echo "Second LaTeX pass..."
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
@@ -75,6 +75,13 @@ setup:
 	@echo "  cp ../scripts/simulation_results_multi.png figures/"
 	@echo "  cp ../scripts/simulation_results_multi_v2g.png figures/"
 
+# Word conversion (requires pandoc)
+.PHONY: docx
+docx:
+	@echo "Converting main.tex to main.docx..."
+	pandoc $(MAIN).tex --bibliography references.bib -o $(MAIN).docx
+	@echo "Conversion complete: $(MAIN).docx"
+
 # Help
 .PHONY: help
 help:
@@ -83,6 +90,7 @@ help:
 	@echo "  make quick    - Quick compile (single pass, no bibliography)"
 	@echo "  make clean    - Remove auxiliary files"
 	@echo "  make cleanall - Remove all generated files including PDF"
+	@echo "  make docx     - Convert thesis to Word (.docx) using pandoc"
 	@echo "  make watch    - Watch for changes and auto-recompile (requires latexmk)"
 	@echo "  make wordcount- Count words in document"
 	@echo "  make spell    - Run spell checker (requires aspell)"

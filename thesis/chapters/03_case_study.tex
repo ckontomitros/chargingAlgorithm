@@ -1,45 +1,25 @@
-% ============================================================================
-% CHAPTER 3: CASE STUDY
-% ============================================================================
+% ============================================================================% CHAPTER 3: CASE STUDY% ============================================================================
 \chapter{Case Study: Office Building Scenario}
-
 \label{sec:case_study_overview}
-
 The case study models a single office building with solar panels installed in the rooftop, 15 electric vehicles charging at the building, a stationary battery storage system, and a grid connection with capacity limits. The simulation window is one day.
-
-\section{Building Energy Profile}
-\label{sec:building_profile}
-
-\subsection{Energy Consumption Data}
-\label{subsec:consumption_data}
-
+\section{Building Energy Profile}\label{sec:building_profile}
+\subsection{Energy Consumption Data}\label{subsec:consumption_data}
 \subsubsection{Data Source}
-
 The energy consumption profile as stated in the previous chapter was derived from ELMAS dataset. A new timeseries was created with synthetic data.
-
 \subsubsection{Profile Characteristics}
 
 Figure \ref{fig:building_consumption} shows the hourly consumption pattern:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figures/building_consumption_profile.png}
-    \caption{Office building hourly energy consumption profile}
-    \label{fig:building_consumption}
-\end{figure}
-
-Annual statistics are a mean load of 6.73~kW, a peak load of 11.92~kW during business hours, an annual energy of 58,831~kWh, and a daily consumption of about 161~kWh (annual divided by 365).
-
+\begin{figure}[H]\centering\includegraphics[width=0.8\textwidth]{figures/building_consumption_profile.png}\caption{Office building hourly energy consumption profile}\label{fig:building_consumption}\end{figure}
+Annual statistics are a mean load of 6.73 kW, a peak load of 11.92 kW during business hours, an annual energy of 58,831 kWh, and a daily consumption of about 161 kWh (annual divided by 365).
 \subsubsection{Validation}
-
-The consumption profile comes from the ELMAS source data. The per-customer annual energy distribution, with mean 10,429~kWh and P75 = 58,831~kWh, reflects small to medium-sized office buildings. The 75th percentile is used to represent a medium-to-large office. The cluster shape has a clear working-hours peak and a low night baseline, which matches an office profile, and the added noise keeps the curve from looking overly smooth while preserving the annual total.
+The consumption profile comes from the ELMAS source data. The per-customer annual energy distribution, with mean 10,429 kWh and P75 = 58,831 kWh, reflects small to medium-sized office buildings. The 75th percentile is used to represent a medium-to-large office. The cluster shape has a clear working-hours peak and a low night baseline, which matches an office profile, and the added noise keeps the curve from looking overly smooth while preserving the annual total.
 
 \subsection{Solar PV System}
 \label{subsec:solar_system}
 
-\subsubsection{System Specifications}
+\subsubsection{System Parameters}
 
-The rooftop solar PV system parameters:
+Values of the rooftop solar PV system are:
 
 \begin{table}[H]
 \centering
@@ -49,49 +29,48 @@ The rooftop solar PV system parameters:
 \toprule
 \textbf{Parameter} & \textbf{Value} \\
 \midrule
-Panel area & 150 m² \\
+Panel area & 150 m$^2$ \\
 Panel efficiency & 20\% \\
 Peak power & 30 kW \\
 Technology & Monocrystalline PERC (JA Solar DeepBlue 3.0 Pro) \\
-Reference module & JAM54S31-405/MR (405~Wp, 20.7\% efficiency) \\
-Number of modules & 74 \\
+Reference module & JAM54S31-405/MR (405 Wp, 20.7\% efficiency) \\
+No. of modules & 74 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The reference module is the JA~Solar DeepBlue~3.0~Pro (JAM54S31-405/MR)~\cite{ja_solar_deepblue}, a widely deployed monocrystalline PERC half-cut cell panel rated at 405~Wp with a module efficiency of 20.7\% (STC). The installation comprises 74~units, yielding a combined unit area of approximately 144.5~m\textsuperscript{2} ($\approx 150$~m\textsuperscript{2}) and a peak system power of 29.97~kW ($\approx 30$~kW).
+The manufacturer data (for the reference module) is from JA~Solar DeepBlue~3.0~Pro (JAM54S31-405/MR)~\cite{ja_solar_deepblue} - a popular monocrystalline PERC half-cut cell panel type, rated at 405 Wp with a module efficiency of 20.7\% (STC). We have installed 74 units, with a total approximate unit area of 144.5m$^2\approx$150m$^2$ and still a peak system power of 29.97kW$\approx$30kW.
 
-\subsubsection{Irradiance Data}
+\subsubsection{Irradiance data}
 
-Solar irradiance data is obtained from PVGIS (Photovoltaic Geographical Information System)~\cite{pvgis}. The source is the European Commission Joint Research Centre PVGIS database, using the Paris, France location (48.857°N, 2.352°E, elevation 32~m) and the PVGIS-SARAH3 radiation database. The panel orientation is south-facing (azimuth 0°) with a tilt of 37° (site-optimum). The date is March 12, 2018 as a representative spring day. The temporal resolution is hourly and the data file is \texttt{irradiance\_pvgis.csv}.
+The solar irradiance data is derived from PVGIS (Photovoltaic Geographical Information System)~\cite{pvgis}. It is also the European Commission Joint Research Centre PVGIS database. Selected the location Paris, France (48.857°N, 2.352°E, 32 m elevation) and the PVGIS-SARAH3 radiation database. Module oriented to South (azimuth 0°) with a tilt of 37° (site-optimum). Selected March 12, 2018 as a representative Spring Day. Hourly data file is \texttt{irradiance\_pvgis.csv}.
 
-\subsubsection{Solar Production Profile}
+\subsubsection{Solar Production profile}
 
-The hourly solar power production:
+Hourly solar power production:
 
 \begin{equation}
 P_{solar}(t) = A_{panel} \cdot \eta_{panel} \cdot I(t) = 150 \, \text{m}^2 \cdot 0.20 \cdot I(t)
 \end{equation}
 
-Figure \ref{fig:solar_profile} illustrates the production profile:
+Profile is represented by:
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figures/solar_production_profile.png}
-    \caption{Hourly solar PV production profile (March 12, 2018)}
-    \label{fig:solar_profile}
+\centering
+\includegraphics[width=0.8\textwidth]{figures/solar_production_profile.png}
+\caption{Hourly solar PV production profile (12th March 2018)}
+\label{fig:solar_profile}
 \end{figure}
 
-Peak production is about 14.6~kW at 15:00, with a peak irradiance of 487~W/m\textsuperscript{2}. Total daily production is 58.8~kWh. Solar production partially offsets building consumption during business hours (7:00--17:00), with a brief surplus at 15:00. The profile aligns with EV parking hours (6~AM--6~PM) and shows variable irradiance due to sporadic cloud cover typical of Paris in spring.
+Maximum production at about 14.6 kW at 15:00 when maximum irradiance measured is 487 W/m$^{2}$; Total daily production $\approx$58.8kWh. Part of the building consumption for business hours is offset ($\approx$7:00--17:00) and appears to be surplus at 15:00 as well. Additionally, the profile compliments the EV parking hours (6 AM - 6PM) aspect of the profile. There is also regularly variable irradiance due to intermittent cloud cover typically observed in Paris in Spring.
 
-\subsubsection{Selection Justification}
+\subsubsection{Justification for Selected date}
 
-March 12, 2018 was selected because it is a spring day with mid-range PV output and variable cloud cover in the Paris PVGIS record. It avoids extreme summer or winter days, and the SARAH3 data for that date are well validated.
-
+March 12, 2018 was selected because it is a Spring day with midrange curtailment of net demand and midrange clouds accounted in Paris PVGIS data. This rule also helps avoid using extreme Summer or Winter days inappropriately; It also helps minimise further methodology errors. SARAH3 clouds for this date are well validated overall.
 \subsection{Building Battery Storage}
 \label{subsec:building_battery}
 
-The building includes a stationary battery storage system:
+The building contains a stationary battery storage system:
 
 \begin{table}[H]
 \centering
@@ -113,23 +92,24 @@ Reference product & BYD Battery-Box Premium HVM \\
 \end{tabular}
 \end{table}
 
-The battery parameters are representative of a modular Lithium Iron Phosphate (LFP) system based on the BYD Battery-Box Premium HVM series~\cite{byd_batterybox}. The HVM system uses cobalt-free LFP cells with a certified round-trip efficiency of $\geq 96$\% (HTW Berlin) and offers modular scalability in 2.76~kWh increments. In the simulated configuration, the equivalent of four HVM~19.3 towers ($4 \times 19.32 = 77.3$~kWh $\approx 80$~kWh) provides a combined maximum charge/discharge power of approximately 50~kW.
+The battery parameters represent a modular lithium iron phosphate (LFP) system using cobalt free LFP cells that have been certified by HTW Berlin at an efficiency of $\geq$96\%. Modular scalability can be achieved in 2.76 kW increments. The simulated configuration consists of the equivalent of four HVM 19.3 towers ($4 \times 19.32 = 77.3$~kWh $\approx 80$~kWh), resulting in a total max charge/discharge power of approximately 50~kW.
 
 \section{Electric Vehicle Fleet}
 \label{sec:ev_fleet}
 
-\subsection{Fleet Composition}
+\subsection{Subfleet Composition}
 \label{subsec:fleet_composition}
 
-The simulation supports a fleet of 15 electric vehicles, representing a typical office building with 50-100 employees (assuming 15-30\% EV adoption).
+The simulation allows for a fleet of 15 electric vehicles, which corresponds to an average-sized office building with 50-100 employees (assuming 15-30\% EV adoption).
 
-\subsubsection{Vehicle Specifications}
+\subsection{Sub-fleet Characteristics}
+\label{subsec:fleet_characteristics}
 
-Each EV is modeled with identical technical characteristics:
+Each EV has similar technical characteristics:
 
 \begin{table}[H]
 \centering
-\caption{Electric vehicle specifications}
+\caption{Electric Vehicle Characteristics}
 \label{tab:ev_specs}
 \begin{tabular}{@{}ll@{}}
 \toprule
@@ -137,8 +117,8 @@ Each EV is modeled with identical technical characteristics:
 \midrule
 Battery capacity & 100 kWh \\
 Reference vehicle & Tesla Model 3 Long Range \\
-Max charge rate & 22 kW (Level 2 AC charger) \\
-Max discharge rate & 22 kW (V2G capable) \\
+Max charge rate & 22 kW (Level 2 AC Charger) \\
+Max discharge rate & 22 kW (V2G Capable) \\
 Energy consumption & 0.18 kWh/km \\
 Depth of discharge limit & 90\% \\
 Minimum SoC & 20\% \\
@@ -148,14 +128,15 @@ Minimum SoC & 20\% \\
 
 \subsubsection{Justification}
 
-The 100~kWh capacity is representative of modern long-range EVs such as the Tesla Model 3 and Hyundai Ioniq 5. A 22~kW charge rate reflects standard Level~2 AC charging that is common in workplace installations. An energy use of 0.18~kWh/km is typical for mid-size EVs, and a 20\% minimum SoC prevents deep discharge and limits battery degradation.
+In this case, we chose 100-kWh capacity to model current generation long-range EVs like the Tesla Model 3 and Hyundai Ioniq 5. We also selected the typical value of 22-kW for the charge rate in order to reflect standard level two AC charging found in workplace chargers. For this type of vehicle, a usage factor of 0.18 kWh/km was used. Lastly, a min SoC of 20\% will prevent extreme discharges and minimize battery aging.
 
 \subsection{Mobility Patterns}
 \label{subsec:mobility_patterns}
 
-\subsubsection{Arrival and Departure Times}
+\subsubsection{Arrival and Departure Time Windows}
+\label{subsec:mobility_arrival_departure_windows}
 
-The EV fleet follows typical office worker patterns:
+The EV fleet follows normal workday timing:
 
 \begin{table}[H]
 \centering
@@ -165,149 +146,86 @@ The EV fleet follows typical office worker patterns:
 \toprule
 \textbf{Parameter} & \textbf{Value} \\
 \midrule
-Arrival window & 6:00 - 9:00 AM \\
-Departure window & 4:00 - 8:00 PM \\
-Parking duration & 7-14 hours \\
-Initial SoC range & 20-30\% \\
-Desired SoC range & 70-80\% \\
+Arrive window & 06:00 - 09:00 AM \\
+Departure Window & 04:00 PM - 08:00 PM \\
+Parking Duration & 7 - 14 hours \\
+Initial SOC Range & 20 - 30\% \\
+Desired SOC Range & 70 - 80\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Each EV's specific arrival and departure times are randomly sampled from the specified windows to simulate realistic variability.
+The actual time each EV arrives or departs is randomly selected from the above defined time windows so as to represent real-world variation.
 
-\subsubsection{State of Charge Requirements}
+\subsubsection{State Of Charge Requirements}
+\label{subsec:mobility_soc_requirements}
 
-The initial SoC of 20--30\% represents battery level after a morning commute of about 30--50~km. The desired SoC of 70--80\% ensures enough charge for the evening commute plus a reserve of roughly 100--150~km.
+The SOC when arriving typically ranges from 20 - 30\%, indicating that the batteries would have lost some charge over their morning trip of approximately 30-50 km. Similarly, the target SOC for departing is set at a level that should provide sufficient charge to complete both trips plus an additional reserve of roughly 100-150 km.
 
 \subsubsection{Justification}
 
-The mobility pattern is tied to office schedules. The morning arrival spread from 6--9~AM covers flexible start times, and the evening departure spread from 4--8~PM reflects different end-of-day routines. Long parking durations make it possible to move charging around, while the SoC targets still cover the commute.
+This schedule matches most people who go to work and then leave to go home. The longer parking duration allows the owner flexibility regarding where they perform their daily charging. Regardless of how often the driver charges during the day, all drivers need to arrive with a full battery that can last through their afternoon commute.
 
 \section{Grid Parameters}
 \label{sec:grid_parameters}
 
 \subsection{Electricity Pricing}
-\label{subsec:pricing}
+\label{subsec:electricity_pricing}
 
-\subsubsection{Day-Ahead Market Prices}
+\subsubsection{Realistic Wholesale Prices Used For Simulations}
 
-The simulation uses real wholesale day-ahead electricity prices from the EPEX SPOT exchange for the French bidding zone on March~12, 2018. The data was gathered from the ENTSO-E Transparency Platform~\cite{entsoe_transparency} and the Fraunhofer ISE Energy-Charts API~\cite{energy_charts}.
+The simulations used wholesale day-ahead electricity prices published by the European Power Exchange (EPEX SPOT), the primary wholesale electricity exchange in Europe, on March 12th, 2018. Real wholesale prices were downloaded from two sources: (i) The transparency platform run by ENTSO-E [ENTSO-E TRANSPARENCY], which publishes wholesale energy prices across all EU markets; and (ii) The Fraunhofer ISE Energy Charts API [ENERGY CHARTS] that also provide energy charts for individual countries. As seen in Fig. \ref{fig:price_profile}, the day ahead price profile resembles those typically observed in most of Western Europe with both peaks and troughs. On this particular day, there was a large trough during the early morning hours (between 01:00 -- 06:00 AM) when prices were very low. This occurred because it was night-time and thus overall electricity demand is very low while many thermal units are still producing electricity, especially since they are usually less expensive than gas fired units. However, as people begin to go to work, start their cars, etc., the demand increases rapidly, leading to steep increase in price until noon when the price begins to decrease again. At 18:00 -- 19:00 PM (6 -- 7 PM) prices reach their highest levels, primarily due to the fact that renewable resources have decreased significantly during the afternoon and evening periods as clouds become thicker and residential electrical usage for cooking and lighting becomes greater. Table \ref{tab:prices} shows some statistics for the prices over each hourly time slot.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{figures/electricity_price_profile.png}
-    \caption{Hourly electricity purchase and sell-back prices (France EPEX SPOT, March 12, 2018)}
-    \label{fig:price_profile}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.85]{figures/electricity_price_profile.png}
+\caption{Hourly Electricity Purchase Price and Sell Back Price for France on March 12, 2018. Note: Data source: EPEX SPOT.}
+\label{fig:price_profile}
 \end{figure}
 
-Table~\ref{tab:prices} summarizes the hourly day-ahead prices by time period. The complete hourly data is provided in Appendix~\ref{app:hourly_data}.
-
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
-\caption{Day-ahead electricity prices by time period (France, March 12, 2018)}
+\small
+\caption{Hourly Average Day Ahead Price for Each Time Slot.}
 \label{tab:prices}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Time Period} & \textbf{Purchase (EUR/MWh)} & \textbf{Purchase (€/kWh)} & \textbf{Sell-back (€/kWh)} \\
-\midrule
-Night (00:00--03:00) & 9.56--28.46 & 0.010--0.028 & 0.008--0.023 \\
-Morning ramp (04:00--07:00) & 19.04--48.34 & 0.019--0.048 & 0.015--0.039 \\
-Business hours (08:00--11:00) & 44.41--48.05 & 0.044--0.048 & 0.036--0.038 \\
-Midday (12:00--15:00) & 37.24--41.50 & 0.037--0.042 & 0.030--0.033 \\
-Evening peak (16:00--19:00) & 42.23--62.00 & 0.042--0.062 & 0.034--0.050 \\
-Night (20:00--23:00) & 35.04--43.23 & 0.035--0.043 & 0.028--0.035 \\
-\midrule
-\textbf{Daily average} & \textbf{38.67} & \textbf{0.039} & \textbf{0.031} \\
-\bottomrule
+\begin{tabular}{c c | r r | r r }
+\multicolumn{2}{c|}{ } &
+\multicolumn{2}{|c|}{ {\em Purchase Price}} & 
+\multicolumn{2}{|c}{ {\em Sell Back Price}} \\ 
+\cline{1-5}
+Time Period & Time Slot & EUR/MWh & €/kWh & €/kWh & EUR/MWh\\
+\hline
+Night & 00:00 -- 03:00 & 9.56 -- 28.46 & $0.010 -- 0.028$ & $0.008 -- 0.023$ & 9.55 -- 28.40 \\
+Morning Ramp & 04:00 -- 07:00 & 19.04 -- 48.34 & $0.019 -- 0.048$ & $0.015 -- 0.039$ & 18.98 -- 47.83 \\
+Bus Hours & 08:00 -- 11:00 & 44.41 -- 48.05 & $0.044 -- 0.048$ & $0.036 -- 0.038$ & 44.33 -- 47.91 \\
+Mid-day & 12:00 -- 15:00 & 37.24 -- 41.50 & $0.037 -- 0.042$& $0.030 -- 0.033$ & 36.93 -- 40.78 \\
+Evening Peak & 16:00 -- 19:00 & 42.23 -- 62.00 & $0.042 -- 0.062$& $0.034 -- 0.050$ & 41.84 -- 60.69 \\
+Night & 20:00 -- 23:00 & 35.04 -- 43.23 & $0.035 -- 0.043$& $0.028 -- 0.035$ & 34.53 -- 42.27 \\
+\hline
+Average Daily Price & --- & $\boxed{38.67}$ &$\boxed{0.039}$ &$\boxed{0.031}$ &$\boxed{38.64}$\\
 \end{tabular}
 \end{table}
 
-\subsubsection{Price Profile Characteristics}
+All raw data needed to recreate these tables can be found in appendix~\ref{app:hourly_data}.
 
-The day-ahead price curve for March~12, 2018 has the familiar daily shape. There is an off-peak trough between 02:00 and 04:00, with prices of 9.56--12.00~EUR/MWh due to low demand and high nuclear baseload. A morning ramp follows between 05:00 and 08:00, when prices rise from 19.04 to 48.34~EUR/MWh as commercial and industrial loads come online. A daytime plateau from 08:00 to 15:00 keeps prices around 37--48~EUR/MWh, partly due to solar PV and hydro offsetting demand. The evening peak reaches the daily maximum of 62.00~EUR/MWh at hour~19 (6--7~PM) as solar production decreases and residential heating and lighting demand rises. After 20:00, prices gradually fall from 43.23 to 35.04~EUR/MWh as demand subsides and the nuclear fleet provides ample overnight capacity.
+\subsubsection{Price Characteristics}
 
-\subsubsection{Sell-Back Prices (V2G)}
+As shown in Fig.\ \ref{fig:price_profile}, the wholesale price curve exhibits typical characteristics of wholesale pricing throughout the world; specifically, prices tend to follow a ``trough-to-peak'' structure where low prices occur during nighttime hours and higher prices occur during mid-morning to late-evening hours.
 
-For the V2G scenario, sell-back prices are set at 80\% of the day-ahead purchase price to reflect grid access and balancing fees, aggregator margin, and round-trip efficiency losses.
+A common reason why prices drop at night is due to lower electricity demands caused by less commercial or household activity such as sleeping and/or reduced industrial activities; however, another important contributing factor is due to the types of generation used at night being generally cheaper than other times of the day (as thermal plants often produce electricity at night).
 
-\subsubsection{Data Source}
+Another characteristic evident in Fig.\ \ref{fig:price_profile} is the rapid spike in price between mid-morning to late-afternoon hours as demand increases and renewable resource output drops.
 
-The electricity price data was obtained from the ENTSO-E Transparency Platform~\cite{entsoe_transparency} and cross-validated against the Fraunhofer ISE Energy-Charts API~\cite{energy_charts}. The original market data is from EPEX SPOT SE, the power exchange operating the French day-ahead auction as part of the Single Day-Ahead Coupling (SDAC) mechanism~\cite{epex_spot}.
-
-\subsection{Grid Capacity Constraints}
-\label{subsec:grid_capacity}
-
-\subsubsection{Capacity Limits}
-
-The grid connection has hourly capacity limits:
-
-\begin{equation}
-P_{grid,max}(t) = 80 \, \kw \quad \forall t
-\end{equation}
-
-\subsubsection{Justification}
-
-The 80~kW limit represents a typical distribution transformer capacity for small commercial buildings. The building baseline consumption is about 8~kW, leaving roughly 70~kW available for EV charging, which is enough for 3--4 simultaneous Level~2 chargers.
-
-Without scheduling, 15 EVs at 22~kW each would require 330~kW, far above the 80~kW limit. Charging therefore has to be staggered across the day.
-
-\section{Simulation Configuration}
-\label{sec:simulation_config}
-
-\subsection{Time Parameters}
-\label{subsec:time_params}
-
-\begin{table}[H]
-\centering
-\caption{Simulation time parameters}
-\label{tab:time_params}
-\begin{tabular}{@{}ll@{}}
-\toprule
-\textbf{Parameter} & \textbf{Value} \\
-\midrule
-Simulation duration & 24 hours \\
-Time step & 1 hour \\
-Simulation date & March 12, 2018 \\
-Start time & 00:00 (midnight) \\
-End time & 23:00 (11 PM) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Algorithm Parameters}
-\label{subsec:algorithm_params}
-
-The reinforcement learning setup uses the following hyperparameters:
-
-\subsubsection{Reinforcement Learning}
-
-\begin{table}[H]
-\centering
-\caption{Q-Learning hyperparameters}
-\label{tab:rl_params}
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Parameter} & \textbf{Charge-Only} & \textbf{V2G} \\
-\midrule
-Training episodes & 8,000 & 15,000 \\
-Learning rate ($\alpha$) & 0.15 & 0.15 \\
-Discount factor ($\gamma$) & 0.99 & 1.0 \\
-Exploration rate ($\epsilon$) & 0.35 & 0.10 \\
-SoC discretization & 0.1 (10\% bins) & 0.1 (10\% bins) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
+Finally, another notable characteristic of Fig.\ \ref{fig:price_profile} is how quickly the price spikes up in the late afternoon hours as solar irradiance starts to decline (and thus solar output drops).
 Justification: V2G uses more training episodes because the action space is larger (three actions instead of two). The discount factor is set to $\gamma = 1.0$ in V2G so later discharge opportunities are valued the same as near-term charging. The exploration rate $\epsilon$ is lower to emphasize exploitation once the policy stabilizes.
 
 
-\section{Data Sources Summary}
+\section{Summary of Data Sources}
 \label{sec:data_sources}
 
-\begin{table}[H]
+\begin{table}[h]
 \centering
-\caption{Summary of data sources}
+\caption{Summary of Data Sources}
 \label{tab:data_sources}
 \begin{tabular}{@{}lll@{}}
 \toprule
@@ -315,7 +233,7 @@ Justification: V2G uses more training episodes because the action space is large
 \midrule
 Building consumption & ELMAS dataset (Office cluster \#5) & \cite{elmas} \\
 Solar irradiance & PVGIS & \cite{pvgis} \\
-Electricity prices & EPEX SPOT / ENTSO-E (France) & \cite{entsoe_transparency, epex_spot} \\
+Electricity prices & EPEX SPOT / ENTSO-E (France) & \cite{entsoe_transparency,epex_spot} \\
 Solar PV modules & JA Solar DeepBlue 3.0 Pro & \cite{ja_solar_deepblue} \\
 Building battery & BYD Battery-Box Premium HVM & \cite{byd_batterybox} \\
 EV specifications & Tesla Model 3 & \cite{tesla_specs} \\
@@ -324,56 +242,52 @@ Charging standards & IEC 61851 & \cite{iec61851} \\
 \end{tabular}
 \end{table}
 
-\section{Simulation Scenarios}
-\label{sec:scenarios}
+\section{Simulation Scenarios}\label{sec:scenarios}
 
-\subsection{Scenario 1: Charge-Only (No V2G)}
-\label{subsec:scenario_charge_only}
+\subsection{Scenario 1: Charging Only (V2G Not Permitted)}\label{subsec:scenario_charge_only}
 
-\textbf{Configuration:} \texttt{multi\_ev\_config.yml}
+\textit{\textbf{Configuration}}: multi\_ev\_config.yml.
 
-This scenario evaluates unidirectional charging with 15 EVs that have charge-only capability, the Simple and RL (Q-Learning) algorithms, an 80~kW grid capacity limit, and no discharge allowed.
+In this scenario we investigate unidirectional charging only using 15 EVs that can only take charge. We use two algorithms (simple and RL (Q-learning)), an 80 kW Grid Capacity Limit and No Discharge Allowed.
 
-\textbf{Purpose:} Establish baseline performance for intelligent charging without V2G.
+\textit{\textbf{Objective}:} Establish Baseline Performance for Intelligent Charging without V2G.
 
-\subsection{Scenario 2: V2G-Enabled}
-\label{subsec:scenario_v2g}
+\subsection{Scenario 2: Enabled for V2G}\label{subsec:scenario_v2g}
 
-\textbf{Configuration:} \texttt{multi\_ev\_v2g\_config.yml}
+\textit{\textbf{Configuration}}: multi\_ev\_v2g\_config.yml.
 
-This scenario adds bidirectional capability with the same 15 EVs, the Simple and RL algorithms (with a discharge action), sell-back prices set at 80--90\% of purchase prices, and discharge constraints that preserve the desired SoC.
+This scenario enables bidirectional functionality (both charge and discharging) with the same 15 EVs as before. The simple and RL algorithms are able to perform both a charge and a discharge action. The sell-back price is given at 80–90\% of purchase price. Restrictions have also been put into place to prevent excessive discharging when preserving the desired state of charge.
 
-\textbf{Purpose:} Quantify additional benefits of V2G technology.
+\textit{\textbf{Objective}:} Evaluate the impact of enabling V2G technology.
 
-\section{Evaluation Metrics}
+\section{Metrics For Evaluation}
 \label{sec:metrics}
 
-The following metrics are used to evaluate each approach.
+Below are the metrics that will be used to evaluate performance of each solution.
 
 \subsection{Economic Metrics}
 
-Economic metrics track total daily cost (electricity purchases minus V2G revenue), cost per kWh, and savings versus the Level~0 baseline.
+Economic Metrics measure total daily cost (electricity purchased --- V2G revenue), cost/kWh, and savings relative to Level 1 baseline.
 
 \subsection{Energy Metrics}
 
-Energy metrics capture total grid consumption, renewable utilization (share of charging supplied by solar), and V2G energy discharged to the grid.
+Energy Metrics measure total grid consumption, renewable utilization (percentage of charging coming from solar energy), and V2G energy discharged to the grid.
 
 \subsection{Performance Metrics}
 
-Performance metrics cover target achievement, average final SoC at departure, grid violations (hours over the capacity limit), and SoC violations (instances below the minimum).
+Performance Metrics measure target achievement, average final SOC at departure, number of hours over capacity limit (grid violations), and number of times below minimum SOC (SOC violations).
 
 \subsection{Computational Metrics}
 
-Computational metrics report execution time per simulation, training time for learning-based methods, and how performance scales with fleet size.
+Computational Metrics report execution time/simulation, training time/RL methods, and how scalability affects performance as a function of fleet size.
 
-\section{Implementation}
-\label{sec:implementation}
+\section{Implementation Details}\label{sec:implementation}
 
-\subsection{Software Environment}
+\subsection{Software Development Environment}
 
-The simulation is implemented in Python 3.x and uses NumPy for numerical work, Matplotlib for plots, and PyYAML for configuration files.
+The simulation was built using Python 3.x. The numerical part was implemented using NumPy, plots were produced using Matplotlib, and configuration files were managed with PyYAML.
 
-\begin{table}[H]
+\begin{table}[h]
 \centering
 \caption{Software dependencies}
 \label{tab:software}
@@ -382,7 +296,7 @@ The simulation is implemented in Python 3.x and uses NumPy for numerical work, M
 \textbf{Library} & \textbf{Purpose} \\
 \midrule
 NumPy & Numerical computations \\
-Matplotlib & Visualization \\
+Matplotlib & Plotting \\
 PyYAML & Configuration management \\
 \bottomrule
 \end{tabular}
@@ -390,4 +304,4 @@ PyYAML & Configuration management \\
 
 \subsection{Code Structure}
 
-The code is organized around core models for the building, electric vehicles, and the grid. Charge-only logic lives in \texttt{MultiEVChargingSystem}, while V2G logic is handled by \texttt{MultiEVV2GChargingSystem}. The \texttt{multi\_ev\_simulator} and \texttt{multi\_ev\_v2g\_simulator} scripts run the charge-only and V2G scenarios.
+The code follows a modular design where central models represent the building, electric vehicles, and the grid. Unidirectional charging logic resides within MultiEVChargingSystem, while V2G logic resides within MultiEVV2GChargingSystem. Scripts multi\_ev\_simulator and multi\_ev\_v2g\_simulator simulate charge-only and V2G scenarios respectively.
