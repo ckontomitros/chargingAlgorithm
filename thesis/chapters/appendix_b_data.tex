@@ -193,3 +193,35 @@ Table~\ref{tab:app_prices} presents the complete hourly day-ahead electricity pr
 \end{tabular}
 \end{table}
 
+\section{Annual Simulation Averages (2018)}
+\label{app:annual_averages}
+
+This section contains the monthly breakdown of the average daily cost throughout the 365 days of the 2018 simulation. It illustrates the seasonal variations in charging costs.
+
+\begin{table}[H]
+\centering
+\caption{Monthly average daily cost (€) for Charge-Only algorithms in 2018}
+\label{tab:app_monthly_averages}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Month} & \textbf{Simple (€)} & \textbf{RL (€)} & \textbf{RL Savings (\%)} \\
+\midrule
+January   & 31.50 & 31.37 & 0.4\% \\
+February  & 30.30 & 30.08 & 0.7\% \\
+March     & 30.67 & 30.20 & 1.5\% \\
+April     & 29.54 & 29.26 & 0.9\% \\
+May       & 28.53 & 28.19 & 1.2\% \\
+June      & 29.05 & 28.72 & 1.1\% \\
+July      & 28.53 & 27.94 & 2.1\% \\
+August    & 28.91 & 28.47 & 1.5\% \\
+September & 28.80 & 28.52 & 1.0\% \\
+October   & 29.69 & 29.41 & 0.9\% \\
+November  & 31.10 & 30.40 & 2.3\% \\
+December  & 31.13 & 31.06 & 0.2\% \\
+\midrule
+\textbf{Annual Avg} & \textbf{29.79} & \textbf{29.46} & \textbf{1.1\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The V2G daily costs closely mirror the charge-only costs, as the V2G discharge remains zero across all 2018 wholesale price environments simulated.

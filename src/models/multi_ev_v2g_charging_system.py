@@ -85,8 +85,8 @@ class MultiEVV2GChargingSystem:
                     cost = actual_from_grid * self.grid.get_price(hour)
                     total_cost += cost
                     charged_evs.append(i)
-                    print(f"EV {i}: Charged {actual_energy:.2f} kWh ({actual_from_surplus:.2f} from renewables, "
-                          f"{actual_from_grid:.2f} from grid) at hour {hour}, Cost: {cost:.2f} EUR")
+                    # print(f"EV {i}: Charged {actual_energy:.2f} kWh ({actual_from_surplus:.2f} from renewables, "
+                    #       f"{actual_from_grid:.2f} from grid) at hour {hour}, Cost: {cost:.2f} EUR")
 
         return len(charged_evs) > 0, total_cost * -1
 
@@ -377,8 +377,8 @@ class MultiEVV2GChargingSystem:
                                          f"Benefit: {benefit:.2f} €")
 
         # Print actions
-        for action_msg in actions_taken:
-            print(action_msg)
+        # for action_msg in actions_taken:
+        #     # print(action_msg)
 
         return len(actions_taken) > 0, total_benefit
 

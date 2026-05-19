@@ -161,8 +161,10 @@ def run_multi_ev_simulation(cfg: dict):
     # ------------------------------------------------------------------ #
     # 7. Visualize + Summary
     # ------------------------------------------------------------------ #
-    visualise_multi_ev(results, cfg, evs, system)
-    summarise_multi_ev(results, cfg, system)
+    if cfg.get('visualise', True):
+        visualise_multi_ev(results, cfg, evs, system)
+    if cfg.get('summarise', True):
+        summarise_multi_ev(results, cfg, system)
 
     return results
 

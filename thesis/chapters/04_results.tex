@@ -17,7 +17,25 @@ Results from simulations are divided into two scenarios: a multi-EV charge-only 
 \subsection{Economics}
 \label{subsec:scenario_one_econ}
 
-\subsubsection{Total Daily Costs} Results from the charge-only come together in Table~\ref{tab:charge_only}. A Level~1 simple system leaves total costs at €31.63, reaching all target SoC levels for the vehicles. The Level 2 Quantitative RL system reduces costs a further 3.7\% compared to its Level 1 counterpart to €30.45 after completing 15{,}000 training episodes. \subsection{Energy Performance} \label{subsec:charge_only_energy}
+\subsubsection{Total Daily Costs}
+Results from the charge-only come together in Table~\ref{tab:charge_only}. A Level~1 simple system leaves total costs at €31.63, reaching all target SoC levels for the vehicles. The Level 2 Quantitative RL system reduces costs a further 3.7\% compared to its Level 1 counterpart to €30.45 after completing 15{,}000 training episodes.
+
+\begin{table}[H]
+\centering
+\caption{Total daily costs for the charge-only scenario}
+\label{tab:charge_only}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{Total Cost (€)} & \textbf{Savings vs Simple (€)} & \textbf{Savings (\%)} \\
+\midrule
+Simple & 31.63 & --- & --- \\
+RL & 30.45 & 1.18 & 3.7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Energy Performance}
+\label{subsec:charge_only_energy}
 \subsubsection{Renewable Energy Utilization}
 \begin{table}[H]
 \centering
@@ -76,7 +94,27 @@ RL & $-$31.46 & $-$1.01 & 0.00 & 0.0 \\
 \end{tabular}%
 }
 \end{table}
-Again, no discharge takes place even in the wholesale price scenario where it is possible given the sell back rate of 80\%. In the wholesale price scenario with a price between €0.01 and €0.06kWh, V2G discharge does not take place. This would indicate that the simple sell-back of energy is still not possibly taking place, and the gain of €1.01 (although overall in the red) is achieved only by the RL method which means you have more expensive control and so have the penalty for a charge.
+There is no discharging at all for the wholesale pricing case. In order to determine if V2G can be economically viable for a range of sell back prices, the annual simulation (365 days of 2018 data) was run using three different sell price multipliers: 80%, 100%, and 120% of the purchase price. The results from this study are shown in TABLE ~\ref{tab:v2g_sell_price_sensitivity}.
+
+\begin{table}[H]
+\centering
+\caption{Results for the V2G Sell Price Sensitivity Analysis --- Annual Average Daily Results }
+\label{tab:v2g_sell_price_sensitivity}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule 
+\textbf{Sell Price Multiplier }& \multicolumn{2}{c}{\textbf{V2G Simple }} & \multicolumn{2}{c}{\textbf{V2G RL}} & \multicolumn{2}{c}{\textbf{V2G Discharge}} \\
+\cmidrule(lr){2-3}\ cmidrule(lr){4-5}\ cmidrule(lr){6-7} 
+\textbf{(of Purchase Price)} & \textbf{Cost (€)} & \textbf{Revenue (€)} & \textbf{Cost (€)} & \textbf{Revenue (€)} & \textbf{kWh (simple)} & \textbf{kWh (rl)}\\ 
+\midrule 
+80\% of Buy & 29.79 & 0.00 & 29.64 & 0.00 & 0.0 & 0.0 \\ 
+100\% of Buy & 29.79 & 0.00 & 29.64 & 0.00 & 0.0 & 0.0 \\ 
+120\% of Buy & 29.79 & 0.00 & 29.64 & 0.00 & 0.0 & 0.0 \\ 
+\bottomrule 
+\end{tabular}%
+}
+\end{table}
+Across all three sell-back rate scenarios, V2G discharge is exactly zero. Neither the simple algorithm nor the RL agent chose to discharge at any sell-back rate. This demonstrates that at wholesale price levels (€0.01--0.06/kWh), the absolute price spread is insufficient to justify V2G arbitrage, even when the sell price exceeds the buy price by 20\%. The RL agent correctly learns that the roundtrip efficiency losses and the opportunity cost of reduced SoC make discharge unprofitable at these low absolute price levels.
 \subsection{V2G Discharge Patterns} \label{subsec:v2g_discharge}
 \subsubsection{State of Charge Management}
 Figure \ref{fig:v2g_soc} shows the evolution of the state of charge of the EV fleet with V2G:
@@ -129,7 +167,7 @@ Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\%\\
 \end{tabular}%
 }
 \end{table}
-Level~1 (using simple rules) costs €31.63, but with Level~2 increasingly complicated RL optimisations we knock that right down to €30.45, a €1.18 or 3.7\% saving. Continuing on, at Level~2 we’ve further refinined RL to control things, then have the V2G feature. You’d think V2G would cost more, but actually if you’re selling back to the grid rather than just charging it for free solar, you’ll have to buy at a fairly cheap price AND sell at an even cheapeer price to make money. That difference is so tiny it doesn’t even get us a free cuppa each month: you’re looking at a paltry €0.17 or a positively mindbending 0.5\%.
+Level~1 (using simple rules) costs €31.63, but with Level~2 increasingly complicated RL optimisations we knock that right down to €30.45, a €1.18 or 3.7\% saving. Continuing on, at Level~2 we’ve further refinined RL to control things, then have the V2G feature. 
 
 \subsection{Algorithm Comparison}
 \label{subsec:algorithmm_comparison}
@@ -177,7 +215,7 @@ Both methods stay below 80~kW with no violations. Charging is spread out over th
 \subsection{Charge-Only vs V2G Comparison}
 \label{subsec:charge_vs_v2g}
 
-A comparison between charge-only and V2g-enabled systems:
+A comparison between charge-only and V2G-enabled systems, including annual averages from the full 365-day simulation:
 
 \begin{table}[H]
 \centering
@@ -188,15 +226,15 @@ A comparison between charge-only and V2g-enabled systems:
 \toprule
 \textbf{Method} & \textbf{Charge-Only (€)} & \textbf{V2G-Enabled (€)} & \textbf{V2G Benefit (€)} \\
 \midrule
-Simple & 31.63 & 31.63 & 0.00 \\
-RL & 30.45 & 31.46 & $-$1.01 \\
+Simple & 29.79 & 29.79 & 0.00 \\
+RL & 29.46 & 29.64 & $-$0.18 \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
-At a wholesale price we're not recovering anything if we try to discharge (assuming an 80\% sell-back rate). Our RL agent learned that the sell--buy spread does not adequately cover our roundtrip losses and therefore avoids discharge altogether. This illustrates the more general point: how to make V2g work? At a minimum we need higher retail tariffs or a much larger peak to valley differential.
-
+In addition to the annual average costs calculated with the simple charging algorithm as being approximately €29.79 per day for both Charge-Only and V2G cases (which shows that there is no added benefit from V2G in terms of cost when the vehicle does not need to be discharged), the RL agent has achieved an annual average of €29.46 per day in Charge-Only Mode versus €29.64 per day in the V2G case. These are minimal differences based on the training of the Charge-Only and V2G RL Agents and have little or nothing to do with the amount of V2G discharging which occurred.
+Additionally, Table \ref{tab:v2g_sell_price_sensitivity} represents the results of the Sell Price Sensitivity Analysis, which further supports our findings in that we found that regardless of the Sell-To-Buy Ratio (80\%, 100\%, 120\%) the amount of energy that was discharged through the vehicle remained at ZERO. What this ultimately signifies is that; At wholesale price levels (€0.01 -- €0.06/kWh), regardless of the buy-to-sell ratio, it is impossible to generate enough revenue through the sale of excess energy to compensate for Round-Trip Efficiency Losses. Thus, V2G Arbitrage will require either higher absolute prices (i.e., Retail Tariffs) or much larger peak-to-trough differential pricing.
 \subsection{V2G Revenue Breakdown}
 \label{subsec:v2g_revenue}
 
@@ -247,8 +285,39 @@ High variation ($\pm$100\%) & 32.14 & 29.88 \\
 \end{tabular}
 \end{table}
 Since the two methods are almost identical with respect to retail prices except for renewable-orientation, we see when the variability is high form pays off much more, therefore, the value of smart charging increases with price variability.
-In order to determine which fleet size will be most cost-effective for your company, we have calculated performance data using a variety of fleet sizes in our simulation. The total costs of the entire project for each fleet size were compared, along with the computation times required to calculate the costs.
+\subsection{V2G Sell Price Sensitivity}
+\label{subsec:sensitivity_sell_price}
 
+In this section, we will study the sensitivity of V2G discharge based on feed-in tariffs. To do so, the full annual simulation of 365 days was run at three different sell-back price levels: 80\%, 100\%, and 120\% of the wholesale purchase price. The results of the 365 day annual simulations are shown below in table~\ref{tab:v2g_sell_annual}.
+
+\begin{table}[H]
+\centering
+\caption{Average V2G Performance over One Year at Different Sell Back Rates (365 Days, 2018)}
+\label{tab:v2g_sell_annual}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{Sell Price} & \multicolumn{2}{c}{\textbf{Daily Cost (€)}} & \multicolumn{2}{c}{\textbf{V2G Revenue (€)}} & \multicolumn{2}{c}{\textbf{V2G Discharged (kWh)}} & \textbf{Cost/kWh (€)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& \textbf{Simple} & \textbf{RL} & \textbf{Simple} & \textbf{RL} & \textbf{Simple} & \textbf{RL} & \textbf{RL} \\
+\midrule
+80\% of buy & 29.79 & 29.64 & 0.00 & 0.00 & 0.0 & 0.0 & 0.0439 \\
+100\% of buy & 29.79 & 29.64 & 0.00 & 0.00 & 0.0 & 0.0 & 0.0439 \\
+120\% of buy & 29.79 & 29.64 & 0.00 & 0.00 & 0.0 & 0.0 & 0.0439 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+As can be seen from the table above, the results show no variation whatsoever when comparing the three sell back rates. As such, it is evident that neither V2G discharge energy nor revenue were generated by V2G discharge as a result of the three tested sell back prices. It has been established through the testing of these prices that the RL agent consistently demonstrates that at wholesale price levels (€0.01--0.06/kWh) a twenty percent increase in the sell back rate does not create sufficient margin to offset round trip battery loss and/or ensure that enough battery charge remains after departure to meet desired SoC targets. These constraints are fundamentally related to wholesale pricing rather than limitations in algorithms used for V2G arbitrage. In order for V2G arbitrage to be viable and profitable, at least one of the three conditions stated below must occur:
+
+\begin{enumerate}
+\item \textbf{Absolute Prices Are Higher}: Retail electricity tariffs need to be significantly higher (€0.15--€0.30/kWh) to create a large-enough arbitrage spread.
+\item \textbf{Increased Peak-to-Trough Differential}: A greater intraday price swing would yield increased profits from each individual V2G discharge cycle.
+\item \textbf{Grid Service Payments}: Any ancillary services, including frequency regulation and capacity payments, may also help support revenue derived from energy arbitrage.
+\end{enumerate}
+
+We also ran a series of tests to determine what fleet size(s) will produce the lowest cost for your firm's needs. We conducted multiple iterations of our model, varying the number of vehicles within each iteration. We then compared both the total cost of ownership for each vehicle within the entire fleet and how long each iteration took to compute its costs.
 To illustrate this point, Table \ref{tab:fleet_scaling} shows the cost per vehicle for various sized fleets. These calculations demonstrate how the cost per vehicle decreases as the fleet size increases, illustrating the concept of economies of scale. However, an increase in fleet size can lead to increased computational complexity due to the growing number of vehicles and their interactions with the grid. This causes a corresponding increase in computation time. As seen in Table \ref{tab:fleet_scaling}, the simple model has identical costs at all three fleet sizes (because it does not take into account the actual demand of the building or the solar production), while the reinforcement learning model provides better results than the simple model but exhibits higher computation times.
 
 \begin{table}[H]
@@ -292,21 +361,24 @@ RL & 58.8 & 51.5 & 7.2 & 100\% \\
 
 Table \ref{tab:solar_utilization} demonstrates how electric vehicles can serve as flexible loads that improve solar self-consumption. Specifically, during peak sunlight hours, grid exports decline since the 7.2 kWh surplus generated by solar panels is consumed by the EVs. On average, this represents about a €0.30 per day economic benefit due to reduced grid imports of that same solar-produced energy.
 
-In order to fully quantify the economic impact of implementing these solutions, we extrapolated daily simulations to create projected annual economic benefits. These projections assume 250 working days per year. Results of this projection are shown in Table \ref{tab:annual_savings}.
+In order to fully quantify the economic impact of implementing these solutions, the simulation was run over all 365 days of 2018 using real PVGIS irradiance data for each day. Table~\ref{tab:annual_savings} presents the actual annual results.
 
 \begin{table}[H]
 \centering
-\caption{Projected annual economic benefits (250 working days)}
+\caption{Annual economic results (365 days, 2018 data)}
 \label{tab:annual_savings}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Method} & \textbf{Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings (€)} \\
+\textbf{Method} & \textbf{Avg Daily Cost (€)} & \textbf{Annual Cost (€)} & \textbf{Annual Savings vs Simple (€)} & \textbf{Savings (\%)} \\
 \midrule
-Simple & 31.63 & 7{,}908 & --- \\
-RL & 30.45 & 7{,}612 & 296 \\
-RL + V2G & 31.46 & 7{,}865 & 43 \\
+Charge-Only Simple  & 29.79 & 10{,}873 & ---  & --- \\
+Charge-Only RL      & 29.46 & 10{,}753 & 120  & 1.1\% \\
+V2G Simple          & 29.79 & 10{,}873 & 0    & 0\% \\
+V2G RL              & 29.64 & 10{,}820 & 53   & 0.5\% \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+
+Annual simulation results confirm that the use of an RL charge-only approach for electric vehicle charging saves about €120 annually when comparing to the simple baseline. In contrast, the V2G-RL approach saves about €53. Furthermore, the V2G discharge generates zero revenue at each of the three sell-back rates analyzed (80\%, 100\% and 120\%) which supports our assumption that no wholesale price arbitrage will be possible based on prices within the 2018 French wholesale electricity markets.

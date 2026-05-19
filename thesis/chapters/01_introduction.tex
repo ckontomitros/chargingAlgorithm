@@ -15,8 +15,70 @@ the energy produced by these panels can be used both for the building's consumpt
 \section{Literature Review}
 \label{sec:literature_review}
 
-Currently, there are many different algorithms that are used for the smart scheduling of the EV fleet. Early studies, such as Richardson \cite{richardson2012ev_ucd}, used linear programming in order to decide which vehicle will be charged and when in 15-minute intervals,
-taking into account network limitations. Further studies included the use of reinforcement learning to increase grid stability, and optimize for pricing and renewables utilization; several studies are included in this review \cite{qiu2023rl_ev_review}.
+There are many algorithms in play for the smart scheduling of the EV fleet. Early papers, such as Richardson \cite{richardson2012ev_ucd}, used linear programming to decide which vehicle will be charged when in 15-minute intervals, subject to network limitations. Later work included the use of reinforcement learning to improve grid stability, and optimise for pricing and renewables utilisation; several studies can be found in the work by Qiu et al. \cite{qiu2023rl_ev_review}. Below we discuss 10 representative papers from that review, all of which apply reinforcement learning to EV charging with the objective of cost minimisation and/or renewable energy integration, and compare to our present work.
+\textbf{Wan et al. (2019)} \cite{wan2019drl_ev} proposed a model-free online drl-based real-time charging scheduling method for EV, using a representation network to extract features related to different time-varying electricity rates, as well as a Q-network that learns an action at every time step. They deal well with price uncertainty, but have a single EV and no renewable energy sources or building integration; we add a 15-EV fleet at an office building with rooftop PV and a stationary battery, and solve this problem using the same mechanism as the rest of this paper.
+\textbf{Shin et al. (2019)} \cite{shin2019cooperative} presented a multi-agent deep reinforcement learning for cooperative management of photovoltaic/energy storage system-enabled charging station. They do consider PV and energy storage, but we are more focused on intra-building optimisation than interstation. We model building consumption, grid capacity as an optimisation constraint, and V2G capability in a single integrated scenario.
+\textbf{Chiș et al.\ (2017)} \cite{chis2017rl_ev_price} developed one of the earliest RL approaches for plug-in EV charging with forecasted price signals, using Q-learning to reduce charging costs. Their study considers a single EV and focuses on price optimisation; we include utility from solar energy as a further optimisation objective and handle a multi-vehicle fleet under a shared grid capacity constraint.
+\textbf{Qiu et al.\ (2020)} \cite{qiu2020drl_pricing_ev} propose a Prioritized DDPG method for the pricing of EVs with discrete charging levels, focusing primarily on the aggregator's perspective. Their work captures the V2G flexibility and pricing economics, but does not model on-site renewable generation or building energy consumption. Our thesis instead approaches the problem from a building operator's point of view, explicitly integrating renewable generation from rooftop PV production, and building loads into the reward signal.
+\textbf{Dorokhova et al.\ (2021)} \cite{dorokhova2021drl_ev_pv} use deep reinforcement learning to control EV charging in a context with PV generation, comparing against rule-based and MPC benchmarks. Their formulation is the closest to ours in the list having PV integrated, but considers the problem of a single EV charging at a residential site. Our work differs in that we target a commercial office building with a fleet of 15 EVs, as well as a stationary battery, wholesale market electricity prices, and V2G capability.
+\textbf{Tuchnitz et al.\ (2021)} \cite{tuchnitz2021smart_ev_fleet} suggest a smart charging strategy for an EV fleet using reinforcement learning to optimise fleet-level schedules and reduce the variance in the load sent to the grid by 65%. Their study focuses on the load flattening and resulting stability of the grid, but does not treat the problem of renewable self-consumption or cost optimisation; our work jointly optimises for both solar utilisation and cost, whilst also enforcing constraints on the grid.
+\textbf{Lee and Choi (2021)} \cite{lee2021dynamic_pricing_ev} introduce a privacy-preserving deep reinforcement learning framework for dynamic pricing and energy management of multiple distributed charging stations with PV and ESS. Their work addresses the pricing problem from the station operator's perspective using federated learning techniques. Our work differs in that we optimise from the point of view of the building operator, and use tabular Q-learning (which is understandable), rather than DDPG. We evaluate the profitability of V2G under real European wholesale prices.
+\textbf{Abdullah et al.\ (2021)} \cite{abdullah2021rl_ev_review} offer an overview of RL-based EV charging management systems, categorising the algorithms used and comparing objectives. Their survey highlights that most studies opt for only one objective (cost, PV output) when in practice a complete algorithm that considers all is of much greater utility, although this kind of study is also hard to do under realistic assumptions. Our thesis helps fill in this space by performing a complete, integrated simulation on real European data, using a two-level approach and evaluating V2G viability.
+\textbf{Sadeghianpourhamami et al. (2018)} \cite{sadeghianpourhamami2018scalable_ev} have introduced an scalable model-free demand response strategy using batch reinforcement learning (Fitted Q-Iteration) for coordinated charging of fleets. Due to its compact state representation, the scalability of Sadeghianpourhamami et al.'s (2018) approach is supported, however the focus of the reward function lies entirely on the load smoothing. In contrast to this, we have formulated the Q-learning to take into account a multi-objective reward with costs, solar usage, target SoC achievement and penalty terms for violations of constraints.
+
+\textbf{Park and Moon (2022)} \cite{park2022madrl_ev} presented a multi-agent DRL strategy based on centralized training and decentralized implementation for scheduling EV charging. Their method allows multi-vehicle coordination via attention networks. However, they do not take into account on-site renewable generation nor V2G. We show here that even a much simpler tabular Q-learning method can achieve significant cost savings (of 3.7\%) while achieving the same level of target SoC as Park and Moon (2022), if the building PV generation and dynamic pricing data are incorporated appropriately into the Q-learning.
+
+\subsection{Summary and Contribution of This Thesis}
+\label{subsec:lit_review_summary}
+
+The literature review summary of the reviewed papers including a comparison to the current thesis is given in Table~\ref{tab:lit_comparison}.
+
+\begin{table}[H]
+
+\centering
+
+\caption{Comparison of reviewed works with the present thesis}
+
+\label{tab:lit_comparison}
+
+\resizebox{\textwidth}{!}{%
+
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{Study} & \textbf{RL Method} & \textbf{Price Opt.} & \textbf{PV/RES} & \textbf{V2G} & \textbf{Fleet} & \textbf{Building} & \textbf{Battery} \\
+\midrule
+Wan et al. (2019) & DQN & \checkmark & & & & & \\
+Shin et al. (2019) & MADRL & \checkmark & \checkmark & & & & \checkmark \\
+Chi\c{s} et al. (2017) & Q-learning & \checkmark & & & & & \\
+Qiu et al. (2020) & DDPG & \checkmark & & \checkmark & & & \\
+Dorokhova et al. (2021) & DRL & & \checkmark & & & & \\
+Tuchnitz et al. (2021) & RL+ANN & & & & \checkmark & & \\
+Lee \& Choi (2021) & Fed-DRL & \checkmark & \checkmark & & & & \checkmark \\
+Abdullah et al. (2021) & Survey & --- & --- & --- & --- & --- & --- \\
+Sadeghianpourhamami et al. (2018) & Batch RL & & & & \checkmark & & \\
+Park \& Moon (2022) & MADRL & \checkmark & & & \checkmark & & \\
+\midrule
+\textbf{This thesis} & \textbf{Q-learning} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+As indicated in Table~\ref{tab:lit_comparison}, the present work is distinctive as follows:
+
+(i) A combination of algorithms with various complexity levels from simple rules to Q-learning and V2G-enabled Q-learning.
+
+(ii) Integration of on-site rooftop PV generation into the reward function.
+
+(iii) Stationary building battery.
+
+(iv) Realistic mobility patterns for a 15-EV fleet.
+
+(v) Real European wholesale electricity prices.
+
+(vi) Explicit modeling of office building consumption.
+
+Most previous studies addressed at most three of these characteristics.
 
 \section{Smart Charging Levels}
 \label{sec:smart_charging_levels}

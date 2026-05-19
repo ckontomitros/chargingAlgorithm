@@ -153,7 +153,10 @@ Each EV $i$ in the fleet has the following information:
 The state of charge evolves for EV $i$ following the equation:
 
 \begin{equation}
-\soc^i(t+1) = \soc^i(t) + \frac{\eta_{charge} \cdot E_{charge}^i(t) - E_{discharge}^i(t)/\eta_{discharge}}{B_{cap}^{i}}
+\soc^i(t+1) = \begin{cases}
+\soc^i(t) + \dfrac{\eta_{charge} \, E_{charge}^i(t)}{B_{cap}^{i}} & \text{when charging ($E_{discharge}^i(t)=0$),} \\[1em]
+\soc^i(t) - \dfrac{E_{discharge}^i(t)}{\eta_{discharge} \, B_{cap}^{i}} & \text{when discharging ($E_{charge}^i(t)=0$).}
+\end{cases}
 \end{equation}
 
 where $\eta_{charge}$ and $\eta_{discharge}$ are charging and discharging efficiencies (typically 0.95).

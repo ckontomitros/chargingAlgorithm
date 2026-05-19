@@ -195,12 +195,12 @@ The simulations used wholesale day-ahead electricity prices published by the Eur
 \cline{1-5}
 Time Period & Time Slot & EUR/MWh & €/kWh & €/kWh & EUR/MWh\\
 \hline
-Night & 00:00 -- 03:00 & 9.56 -- 28.46 & $0.010 -- 0.028$ & $0.008 -- 0.023$ & 9.55 -- 28.40 \\
-Morning Ramp & 04:00 -- 07:00 & 19.04 -- 48.34 & $0.019 -- 0.048$ & $0.015 -- 0.039$ & 18.98 -- 47.83 \\
-Bus Hours & 08:00 -- 11:00 & 44.41 -- 48.05 & $0.044 -- 0.048$ & $0.036 -- 0.038$ & 44.33 -- 47.91 \\
-Mid-day & 12:00 -- 15:00 & 37.24 -- 41.50 & $0.037 -- 0.042$& $0.030 -- 0.033$ & 36.93 -- 40.78 \\
-Evening Peak & 16:00 -- 19:00 & 42.23 -- 62.00 & $0.042 -- 0.062$& $0.034 -- 0.050$ & 41.84 -- 60.69 \\
-Night & 20:00 -- 23:00 & 35.04 -- 43.23 & $0.035 -- 0.043$& $0.028 -- 0.035$ & 34.53 -- 42.27 \\
+Night & 00:00 -- 03:00 & 9.56 -- 28.46 & 0.010 -- 0.028 & 0.008 -- 0.023 & 9.55 -- 28.40 \\
+Morning Ramp & 04:00 -- 07:00 & 19.04 -- 48.34 & 0.019 -- 0.048 & 0.015 -- 0.039 & 18.98 -- 47.83 \\
+Bus Hours & 08:00 -- 11:00 & 44.41 -- 48.05 & 0.044 -- 0.048 & 0.036 -- 0.038 & 44.33 -- 47.91 \\
+Mid-day & 12:00 -- 15:00 & 37.24 -- 41.50 & 0.037 -- 0.042 & 0.030 -- 0.033 & 36.93 -- 40.78 \\
+Evening Peak & 16:00 -- 19:00 & 42.23 -- 62.00 & 0.042 -- 0.062 & 0.034 -- 0.050 & 41.84 -- 60.69 \\
+Night & 20:00 -- 23:00 & 35.04 -- 43.23 & 0.035 -- 0.043 & 0.028 -- 0.035 & 34.53 -- 42.27 \\
 \hline
 Average Daily Price & --- & $\boxed{38.67}$ &$\boxed{0.039}$ &$\boxed{0.031}$ &$\boxed{38.64}$\\
 \end{tabular}
@@ -256,11 +256,28 @@ In this scenario we investigate unidirectional charging only using 15 EVs that c
 
 \textit{\textbf{Configuration}}: multi\_ev\_v2g\_config.yml.
 
-This scenario enables bidirectional functionality (both charge and discharging) with the same 15 EVs as before. The simple and RL algorithms are able to perform both a charge and a discharge action. The sell-back price is given at 80–90\% of purchase price. Restrictions have also been put into place to prevent excessive discharging when preserving the desired state of charge.
+This test has provided for bi-directional function (i.e., charging or discharging), using the same 15 electric vehicles as before. Both the simple and R-L algorithms were able to complete both a charge and a discharge operation. In addition, restrictions were established in order to limit over-discharge while maintaining the preferred state-of-charge.
 
-\textit{\textbf{Objective}:} Evaluate the impact of enabling V2G technology.
+In order to assess how sensitive V2G profitability is to variations in the price that can be charged by selling back electricity to the grid, the same one-year simulation was run under three different scenarios for multipliers on the sell-back price (sell price).
 
-\section{Metrics For Evaluation}
+\begin{table}[H] 
+\centering 
+\caption{Scenarios for V2G Sell Prices} 
+\label{tab:v2g_sell_price_scenarios} 
+\begin{tabular}{@{}lcc@{}} 
+\hline 
+\textbf{Scenario} & \textbf{Multiplier on Purchase Price} & \textbf{Sell/Buy Price Ratio}\\ 
+\hline 
+Discounted sell-back & 0.8 times purchase price & 80 \% \\ 
+Parity sell-back & 1.00 times purchase price & 100 \% \\ 
+Premium sell-back & 1.20 times purchase price & 120 \% \\ 
+\hline 
+\end{tabular} 
+\end{table}
+
+The discounted sell-back pricing scenario (80%) would reflect a typical "feed-in" tariff where the grid operator maintains a markup. A parity pricing scenario (100%), would assume the sell-back price is equal to the purchase price. A premium pricing scenario (120%), would represent an example of a "premium feed-in" tariff that may exist based upon regulatory incentives to encourage participation in V2G programs.
+
+\textit{\textbf{Objective}: } To evaluate the impacts resulting from allowing V2G technology and establish a threshold of sell-back prices that would make V2G discharge economically viable at wholesale prices.\section{Metrics For Evaluation}
 \label{sec:metrics}
 
 Below are the metrics that will be used to evaluate performance of each solution.
