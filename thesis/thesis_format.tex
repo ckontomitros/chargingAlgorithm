@@ -1,0 +1,83 @@
+% NTUA-style thesis formatting (see department guidelines)
+% - Body: 11--12pt Times New Roman (Arial fallback)
+% - Headings: 14--16pt
+% - Line spacing: 1.5
+% - Alignment: justified
+
+% Main font: Times New Roman, fallback Arial
+\IfFontExistsTF{Times New Roman}
+  {\setmainfont{Times New Roman}[Ligatures=TeX]}
+  {\IfFontExistsTF{Arial}
+    {\setmainfont{Arial}[Ligatures=TeX]}
+    {\setmainfont{TeX Gyre Termes}[Ligatures=TeX]}}
+
+\IfFontExistsTF{Arial}
+  {\setsansfont{Arial}[Ligatures=TeX]}
+  {\setsansfont{TeX Gyre Heros}[Ligatures=TeX]}
+
+% Justified body text
+\usepackage{microtype}
+\usepackage{ragged2e}
+\justifying
+
+% Heading sizes (14--16pt range) without titlesec
+\makeatletter
+\renewcommand\@makechapterhead[1]{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \ifnum \c@secnumdepth >\m@ne
+      {\bfseries\fontsize{16}{24}\selectfont
+        \chaptername\space \thechapter\par\nobreak\vskip 12\p@}%
+    \fi
+    \interlinepenalty\@M
+    \bfseries\fontsize{16}{24}\selectfont #1\par\nobreak
+    \vskip 32\p@}}
+
+\renewcommand\@makeschapterhead[1]{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright
+    \interlinepenalty\@M
+    \bfseries\fontsize{16}{24}\selectfont #1\par\nobreak
+    \vskip 32\p@}}
+
+\renewcommand\section{%
+  \@startsection{section}{1}{\z@}%
+    {-3.5ex \@plus -1ex \@minus -.2ex}%
+    {2.3ex \@plus .2ex}%
+    {\normalfont\bfseries\fontsize{14}{21}\selectfont}}
+
+\renewcommand\subsection{%
+  \@startsection{subsection}{2}{\z@}%
+    {-3.25ex\@plus -1ex \@minus -.2ex}%
+    {1.5ex \@plus .2ex}%
+    {\normalfont\bfseries\fontsize{14}{21}\selectfont}}
+
+\renewcommand\subsubsection{%
+  \@startsection{subsubsection}{3}{\z@}%
+    {-3.25ex\@plus -1ex \@minus -.2ex}%
+    {1.5ex \@plus .2ex}%
+    {\normalfont\bfseries\fontsize{12}{18}\selectfont}}
+\makeatother
+
+% Running head (title) and footer (author); page numbers at bottom outer edge
+\providecommand{\thesisrunningtitle}{Modeling Smart Electric Vehicle Charging}
+\providecommand{\thesisauthor}{Christos Kontomitros}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[CE,CO]{\small\thesisrunningtitle}
+\fancyfoot[C]{\small\thesisauthor}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[CE,CO]{\small\thesisrunningtitle}%
+  \fancyfoot[C]{\small\thesisauthor}%
+  \fancyfoot[LE,RO]{\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+}

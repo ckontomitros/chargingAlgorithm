@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{report}
+\documentclass[12pt,a4paper,twoside,openright]{report}
 % Greek abstract uses Unicode; compile with XeLaTeX or LuaLaTeX (not pdfLaTeX).
 
 % ============================================================================
@@ -6,6 +6,7 @@
 % ============================================================================
 \usepackage{fontspec}
 \usepackage{polyglossia}
+\input{thesis_format.tex}
 \setdefaultlanguage{english}
 \setotherlanguage{greek}
 \IfFontExistsTF{Times New Roman}
@@ -47,18 +48,9 @@
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
 % Page layout
-\usepackage[left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[inner=3cm,outer=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{setspace}
 \onehalfspacing
-
-% Headers and footers
-\usepackage{fancyhdr}
-\setlength{\headheight}{14.5pt}
-\addtolength{\topmargin}{-2.5pt}
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{\leftmark}
-\fancyfoot[C]{\thepage}
 
 % Custom commands
 \newcommand{\soc}{\text{SoC}}
@@ -91,6 +83,7 @@
 % FRONT MATTER
 % ----------------------------------------------------------------------------
 \include{chapters/00_frontmatter}
+\include{chapters/00_abbreviations}
 
 % Table of contents
 \tableofcontents

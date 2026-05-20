@@ -160,9 +160,9 @@ Note here that the EVs charge as required to arrive with the desired SoC, and so
 \begin{tabular}{@{}lcccc@{}} 
 \toprule 
 Level & Description & Cost (€) & More each level cost compared to Simple (€) & More each level cost here in (\%) \\ \midrule 
-Level 1 & Simple rules & 31.63 & --- & --- \\ 
-Level 2 & RL (Q-Learning) & 30.45 & 1.18 & 3.7\% \\ 
-Level 3 & RL + V2G & 31.46 & 0.17 & 0.5\%\\ 
+Level 0 & Simple rules & 31.63 & --- & --- \\ 
+Level 1 & RL (Q-Learning) & 30.45 & 1.18 & 3.7\% \\ 
+Level 2 & RL + V2G & 31.46 & 0.17 & 0.5\%\\ 
 \bottomrule 
 \end{tabular}%
 }
@@ -234,7 +234,7 @@ RL & 29.46 & 29.64 & $-$0.18 \\
 \end{table}
 
 In addition to the annual average costs calculated with the simple charging algorithm as being approximately €29.79 per day for both Charge-Only and V2G cases (which shows that there is no added benefit from V2G in terms of cost when the vehicle does not need to be discharged), the RL agent has achieved an annual average of €29.46 per day in Charge-Only Mode versus €29.64 per day in the V2G case. These are minimal differences based on the training of the Charge-Only and V2G RL Agents and have little or nothing to do with the amount of V2G discharging which occurred.
-Additionally, Table \ref{tab:v2g_sell_price_sensitivity} represents the results of the Sell Price Sensitivity Analysis, which further supports our findings in that we found that regardless of the Sell-To-Buy Ratio (80\%, 100\%, 120\%) the amount of energy that was discharged through the vehicle remained at ZERO. What this ultimately signifies is that; At wholesale price levels (€0.01 -- €0.06/kWh), regardless of the buy-to-sell ratio, it is impossible to generate enough revenue through the sale of excess energy to compensate for Round-Trip Efficiency Losses. Thus, V2G Arbitrage will require either higher absolute prices (i.e., Retail Tariffs) or much larger peak-to-trough differential pricing.
+Additionally, Table \ref{tab:v2g_sell_price_sensitivity} represents the results of the Sell Price Sensitivity Analysis, which further supports our findings in that we found that regardless of the Sell-To-Buy Ratio (80\%, 100\%, 120\%) the amount of energy that was discharged through the vehicle remained at zero. What this ultimately signifies is that; At wholesale price levels (€0.01 -- €0.06/kWh), regardless of the buy-to-sell ratio, it is impossible to generate enough revenue through the sale of excess energy to compensate for Round-Trip Efficiency Losses. Thus, V2G Arbitrage will require either higher absolute prices (i.e., Retail Tariffs) or much larger peak-to-trough differential pricing.
 \subsection{V2G Revenue Breakdown}
 \label{subsec:v2g_revenue}
 
