@@ -217,8 +217,6 @@ A common reason why prices drop at night is due to lower electricity demands cau
 Another characteristic evident in Fig.\ \ref{fig:price_profile} is the rapid spike in price between mid-morning to late-afternoon hours as demand increases and renewable resource output drops.
 
 Finally, another notable characteristic of Fig.\ \ref{fig:price_profile} is how quickly the price spikes up in the late afternoon hours as solar irradiance starts to decline (and thus solar output drops).
-Justification: V2G uses more training episodes because the action space is larger (three actions instead of two). The discount factor is set to $\gamma = 1.0$ in V2G so later discharge opportunities are valued the same as near-term charging. The exploration rate $\epsilon$ is lower to emphasize exploitation once the policy stabilizes.
-
 
 \section{Summary of Data Sources}
 \label{sec:data_sources}
@@ -322,3 +320,42 @@ PyYAML & Configuration management \\
 \subsection{Code Structure}
 
 The code follows a modular design where central models represent the building, electric vehicles, and the grid. Unidirectional charging logic resides within MultiEVChargingSystem, while V2G logic resides within MultiEVV2GChargingSystem. Scripts multi\_ev\_simulator and multi\_ev\_v2g\_simulator simulate charge-only and V2G scenarios respectively.
+
+\subsection{RL Algorithm Convergence for the Representative Day}
+\label{subsec:rl_convergence}
+
+For the charge-only scenario, the tabular Q-learning agent is trained inside \texttt{rl\_charge\_multi} each time a charging decision is required. Training uses the building load, PVGIS irradiance, and EPEX SPOT prices for the representative day (12~March 2018) together with the 15-EV fleet parameters in Table~\ref{tab:ev_specs}. Hyperparameters match \texttt{multi\_ev\_config.yml} and are summarised in Table~\ref{tab:rl_hyperparameters}.
+
+\begin{table}[H]
+\centering
+\caption{Q-learning hyperparameters (charge-only, one-day simulation)}
+\label{tab:rl_hyperparameters}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Training episodes per decision & 15{,}000 \\
+Learning rate ($\alpha$) & 0.15 \\
+Discount factor ($\gamma$) & 1.0 \\
+Exploration rate ($\epsilon$) & 0.10 \\
+Actions & Charge, standby \\
+State variables & EV id, SoC bin, hour, remaining grid capacity bin \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:rl_convergence} shown for learning Curve of the agent was created by the agent that was trained at 10:00 AM on the "representative day" ---the middle morning when there are likely to be most vehicles onsite, and prices are variable enough such that they can vary from day-ahead prices. 
+The light gray line is the cumulative reward earned by each training episode. 
+The solid blue line is a 500 episode rolling average of this. 
+Reward increases over time as the policy starts to charge during off-peak periods when energy costs less. 
+This policy is used throughout the day in which results are reported in Chapter~\ref{ch:results}. 
+When compared to a simple baseline for the same day, it reduces total electrical cost by 3.7 percent or €31.63 -> €30.45.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/rl_convergence.png}
+\caption{Q-learning convergence for the representative day (charge-only, 15 EVs, training at hour 10:00, 12~March 2018)}
+\label{fig:rl_convergence}
+\end{figure}
+
+As a result of the additional actions available for the V2G-enabled case (\textit{i.e.} \textit{discharge}), the number of episodes used during training for both configurations remained the same as before (15{,}000), while \textbf{$\gamma = 1.0$}, which means that all discharge opportunities after the first will be given equal weight. In addition, we have also set the exploration rate low (\textit{i.e.} $\epsilon = 0.10$) to favor exploitation over exploration once the policy has stabilized. Despite this, the behavior shown by convergence was very similar to what we had seen previously; however, the use of the discharge option at wholesale prices was still not observed (see Chapter~\ref{ch:results}).
