@@ -46,7 +46,7 @@ from src.simulation.multi_ev_simulator import run_multi_ev_simulation
 # ---------------------------------------------------------------------------
 SEED = 42
 YEAR = 2018
-HOME_CHARGING_PRICE_EUR_PER_KWH = 0.19
+FLAT_CHARGING_PRICE_EUR_PER_KWH = 0.19
 MAX_WORKERS = 12          # Maximum parallel month-threads
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'results_2018')
 _print_lock = threading.Lock()
@@ -224,9 +224,10 @@ def simulate_day(
         if method not in co_results:
             continue
         metrics = extract_method_metrics(co_results, method, co_cfg, building_co, grid_co)
-        metrics['home_charging_price_eur_per_kwh'] = HOME_CHARGING_PRICE_EUR_PER_KWH
+        metrics['office_charging_price_eur_per_kwh'] = FLAT_CHARGING_PRICE_EUR_PER_KWH
+        metrics['home_charging_price_eur_per_kwh'] = FLAT_CHARGING_PRICE_EUR_PER_KWH
         metrics['home_charging_cost'] = (
-            metrics['total_energy_charged'] * HOME_CHARGING_PRICE_EUR_PER_KWH
+            metrics['total_energy_charged'] * FLAT_CHARGING_PRICE_EUR_PER_KWH
         )
         metrics['execution_time'] = float(co_time)
         day_data[f'co_{method}'] = metrics
@@ -264,7 +265,8 @@ def summarise_month(month_results: List[Dict[str, Any]]) -> Dict[str, Any]:
             'total_cost': float(total_cost),
             'total_grid_energy': float(sum(row['total_grid_energy'] for row in rows)),
             'total_energy_charged': float(total_energy),
-            'home_charging_price_eur_per_kwh': HOME_CHARGING_PRICE_EUR_PER_KWH,
+            'office_charging_price_eur_per_kwh': FLAT_CHARGING_PRICE_EUR_PER_KWH,
+            'home_charging_price_eur_per_kwh': FLAT_CHARGING_PRICE_EUR_PER_KWH,
             'home_charging_cost': float(home_cost),
             'home_charging_delta_vs_algorithm': float(home_cost - total_cost),
             'mean_final_soc': float(np.mean([row['mean_final_soc'] for row in rows])),
@@ -329,7 +331,7 @@ def process_month(month: int, co_base_cfg: Dict) -> str:
             tprint(
                 f"  [{month:02d}] {label}: algorithm cost EUR {s['total_cost']:.2f}, "
                 f"home cost EUR {s['home_charging_cost']:.2f} "
-                f"at EUR {HOME_CHARGING_PRICE_EUR_PER_KWH:.2f}/kWh"
+                f"at EUR {FLAT_CHARGING_PRICE_EUR_PER_KWH:.2f}/kWh"
             )
     return output_path
 
@@ -359,6 +361,7 @@ def main():
     # Load base config once (threads will deep-copy it)
     tprint('Loading config ...')
     co_base_cfg = load_config('data/multi_ev_config.yml')
+    co_base_cfg['price_profile'] = [FLAT_CHARGING_PRICE_EUR_PER_KWH] * 24
     if args.rl_episodes is not None:
         co_base_cfg['rl_episodes'] = args.rl_episodes
 
@@ -372,6 +375,8 @@ def main():
     tprint(f'Output directory : {OUTPUT_DIR}')
     tprint(f'Max parallel threads: {min(MAX_WORKERS, len(months_to_run))}')
     tprint(f"RL episodes      : {co_base_cfg.get('rl_episodes')}")
+    tprint(f"Office price     : EUR {FLAT_CHARGING_PRICE_EUR_PER_KWH:.2f}/kWh")
+    tprint(f"Home price       : EUR {FLAT_CHARGING_PRICE_EUR_PER_KWH:.2f}/kWh")
 
     t_start = time.time()
 
