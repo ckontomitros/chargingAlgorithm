@@ -2,14 +2,15 @@
 """
 Annual 2018 data extraction script.
 
-Runs charge-only and V2G simulations for every day in 2018,
+Runs charge-only rule-based and RL simulations for every day in 2018,
 organized by month. Each month's results are saved to a separate
 JSON file: scripts/results_2018/month_<MM>.json
 
 Usage:
-    python scripts/extract_2018_annual_data.py [--month 1-12]
+    python scripts/extract_2018_annual_data.py [--month 1-12] [--rl-episodes N]
 
     --month  Only process the given month (1-12). If omitted, all months are run.
+    --rl-episodes  Override config rl_episodes for faster exploratory runs.
 
 Multithreading:
     Each month is processed in its own thread (up to 12 threads in parallel).
@@ -39,14 +40,13 @@ from src.utils.data_generator import load_consumption_profile, load_irradiance_p
 from src.models.building import Building
 from src.models.grid import Grid
 from src.simulation.multi_ev_simulator import run_multi_ev_simulation
-from src.simulation.multi_ev_v2g_simulator import run_multi_ev_v2g_simulation
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 SEED = 42
 YEAR = 2018
-SELL_PRICE_MULTIPLIER = 1.2  # feed-in / export vs retail (import) price
+HOME_CHARGING_PRICE_EUR_PER_KWH = 0.19
 MAX_WORKERS = 12          # Maximum parallel month-threads
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'results_2018')
 _print_lock = threading.Lock()
@@ -100,17 +100,7 @@ def build_environment(cfg: Dict[str, Any], irradiance_date: str):
     if isinstance(price_profile, list):
         price_profile = {h: price_profile[h] for h in range(24)}
 
-    sell_pp = cfg.get('sell_price_profile')
-    if sell_pp is not None:
-        if isinstance(sell_pp, list):
-            sell_pp = {h: sell_pp[h] for h in range(24)}
-    else:
-        sell_pp = {h: price_profile[h] * SELL_PRICE_MULTIPLIER for h in price_profile}
-
-    grid = Grid(
-        price_profile=price_profile,
-        sell_price_profile=sell_pp,
-    )
+    grid = Grid(price_profile=price_profile)
 
     return building, grid
 
@@ -195,26 +185,6 @@ def extract_method_metrics(
     }
 
 
-def extract_v2g_extras(v2g_results: Dict, method: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
-    """Extract V2G-specific metrics (revenue, discharged energy)."""
-    benefit_list = v2g_results[method]['benefit']
-    ev_soc_list = v2g_results[method]['ev_soc']
-
-    v2g_revenue = sum(b for b in benefit_list if b > 0)
-    v2g_energy_discharged = 0.0
-    for i in range(1, len(ev_soc_list)):
-        soc_prev = np.array(ev_soc_list[i - 1])
-        soc_curr = np.array(ev_soc_list[i])
-        for j in range(len(soc_prev)):
-            if soc_curr[j] < soc_prev[j]:
-                v2g_energy_discharged += (soc_prev[j] - soc_curr[j]) * cfg['ev_battery_capacity']
-
-    return {
-        'v2g_revenue': float(v2g_revenue),
-        'v2g_energy_discharged': float(v2g_energy_discharged),
-    }
-
-
 # ---------------------------------------------------------------------------
 # Single-day simulation
 # ---------------------------------------------------------------------------
@@ -222,38 +192,22 @@ def extract_v2g_extras(v2g_results: Dict, method: str, cfg: Dict[str, Any]) -> D
 def simulate_day(
     date_str: str,
     co_base_cfg: Dict[str, Any],
-    v2g_base_cfg: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Run charge-only + V2G simulations for one day and return all metrics.
+    Run charge-only rule-based + RL simulations for one day and return all metrics.
 
     Returns a dict keyed by scenario name:
-        { 'co_simple': {...}, 'co_rl': {...}, 'v2g_simple': {...}, 'v2g_rl': {...},
-          'building': {...}, 'date': 'YYYYMMDD' }
+        { 'co_simple': {...}, 'co_rl': {...}, 'building': {...}, 'date': 'YYYYMMDD' }
     """
-    # Deep-copy configs so threads don't share mutable state
+    # Deep-copy config so threads don't share mutable state
     co_cfg = copy.deepcopy(co_base_cfg)
-    v2g_cfg = copy.deepcopy(v2g_base_cfg)
 
     # Patch the irradiance date for this specific day
     co_cfg['irradiance_date'] = date_str
-    v2g_cfg['irradiance_date'] = date_str
 
     # Normalise grid capacity
     if isinstance(co_cfg['grid_capacity_per_hour'], list):
         co_cfg['grid_capacity_per_hour'] = {h: co_cfg['grid_capacity_per_hour'][h] for h in range(24)}
-    if isinstance(v2g_cfg['grid_capacity_per_hour'], list):
-        v2g_cfg['grid_capacity_per_hour'] = {h: v2g_cfg['grid_capacity_per_hour'][h] for h in range(24)}
-
-    pp = v2g_cfg['price_profile']
-    if isinstance(pp, list):
-        v2g_cfg['sell_price_profile'] = {
-            h: pp[h] * SELL_PRICE_MULTIPLIER for h in range(24)
-        }
-    else:
-        v2g_cfg['sell_price_profile'] = {
-            h: pp[h] * SELL_PRICE_MULTIPLIER for h in pp
-        }
 
     day_data: Dict[str, Any] = {'date': date_str}
 
@@ -270,26 +224,12 @@ def simulate_day(
         if method not in co_results:
             continue
         metrics = extract_method_metrics(co_results, method, co_cfg, building_co, grid_co)
+        metrics['home_charging_price_eur_per_kwh'] = HOME_CHARGING_PRICE_EUR_PER_KWH
+        metrics['home_charging_cost'] = (
+            metrics['total_energy_charged'] * HOME_CHARGING_PRICE_EUR_PER_KWH
+        )
         metrics['execution_time'] = float(co_time)
         day_data[f'co_{method}'] = metrics
-
-    # ---- V2G ---------------------------------------------------------------
-    random.seed(SEED)
-    np.random.seed(SEED)
-    t0 = time.time()
-    v2g_results = run_multi_ev_v2g_simulation(v2g_cfg)
-    v2g_time = time.time() - t0
-
-    building_v2g, grid_v2g = build_environment(v2g_cfg, date_str)
-
-    for method in ('simple', 'rl'):
-        if method not in v2g_results:
-            continue
-        metrics = extract_method_metrics(v2g_results, method, v2g_cfg, building_v2g, grid_v2g)
-        extras = extract_v2g_extras(v2g_results, method, v2g_cfg)
-        metrics.update(extras)
-        metrics['execution_time'] = float(v2g_time)
-        day_data[f'v2g_{method}'] = metrics
 
     # ---- Building profile --------------------------------------------------
     total_solar = sum(building_co.renewable_energy_profile)
@@ -307,11 +247,38 @@ def simulate_day(
     return day_data
 
 
+def summarise_month(month_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Aggregate daily metrics for the month."""
+    summary: Dict[str, Any] = {}
+    valid_days = [day for day in month_results if 'error' not in day]
+
+    for key in ('co_simple', 'co_rl'):
+        rows = [day[key] for day in valid_days if key in day]
+        if not rows:
+            continue
+
+        total_cost = sum(row['total_cost'] for row in rows)
+        total_energy = sum(row['total_energy_charged'] for row in rows)
+        home_cost = sum(row['home_charging_cost'] for row in rows)
+        summary[key] = {
+            'total_cost': float(total_cost),
+            'total_grid_energy': float(sum(row['total_grid_energy'] for row in rows)),
+            'total_energy_charged': float(total_energy),
+            'home_charging_price_eur_per_kwh': HOME_CHARGING_PRICE_EUR_PER_KWH,
+            'home_charging_cost': float(home_cost),
+            'home_charging_delta_vs_algorithm': float(home_cost - total_cost),
+            'mean_final_soc': float(np.mean([row['mean_final_soc'] for row in rows])),
+            'days': len(rows),
+        }
+
+    return summary
+
+
 # ---------------------------------------------------------------------------
 # Month processing
 # ---------------------------------------------------------------------------
 
-def process_month(month: int, co_base_cfg: Dict, v2g_base_cfg: Dict) -> str:
+def process_month(month: int, co_base_cfg: Dict) -> str:
     """
     Simulate every day in `month` and save results to:
         scripts/results_2018/month_<MM>.json
@@ -334,7 +301,7 @@ def process_month(month: int, co_base_cfg: Dict, v2g_base_cfg: Dict) -> str:
         date_str = d.strftime('%Y%m%d')
         try:
             tprint(f"  [{month:02d}] Simulating {date_str} ...")
-            day_data = simulate_day(date_str, co_base_cfg, v2g_base_cfg)
+            day_data = simulate_day(date_str, co_base_cfg)
             month_results.append(day_data)
         except Exception as exc:
             msg = f"  [{month:02d}] ERROR on {date_str}: {exc}"
@@ -348,13 +315,22 @@ def process_month(month: int, co_base_cfg: Dict, v2g_base_cfg: Dict) -> str:
         'year': YEAR,
         'num_days_processed': len(month_results),
         'errors': errors,
+        'summary': summarise_month(month_results),
         'days': month_results,
     }
 
     with open(output_path, 'w') as f:
         json.dump(output_payload, f, indent=2, default=str)
 
-    tprint(f"  [{month:02d}] Saved → {output_path}  ({len(month_results)} days, {len(errors)} errors)")
+    tprint(f"  [{month:02d}] Saved -> {output_path}  ({len(month_results)} days, {len(errors)} errors)")
+    for key, label in (('co_simple', 'Rule-based'), ('co_rl', 'RL')):
+        if key in output_payload['summary']:
+            s = output_payload['summary'][key]
+            tprint(
+                f"  [{month:02d}] {label}: algorithm cost EUR {s['total_cost']:.2f}, "
+                f"home cost EUR {s['home_charging_cost']:.2f} "
+                f"at EUR {HOME_CHARGING_PRICE_EUR_PER_KWH:.2f}/kWh"
+            )
     return output_path
 
 
@@ -364,11 +340,15 @@ def process_month(month: int, co_base_cfg: Dict, v2g_base_cfg: Dict) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Extract 2018 annual simulation data, one file per month.'
+        description='Extract 2018 charge-only rule-based/RL simulation data, one file per month.'
     )
     parser.add_argument(
         '--month', type=int, choices=range(1, 13), metavar='1-12',
         help='Process only this month (1=Jan … 12=Dec). Omit to process all months.'
+    )
+    parser.add_argument(
+        '--rl-episodes', type=int, metavar='N',
+        help='Override the config rl_episodes value for this run.'
     )
     args = parser.parse_args()
 
@@ -376,28 +356,28 @@ def main():
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(project_root)
 
-    # Load base configs once (threads will deep-copy them)
-    tprint('Loading configs ...')
+    # Load base config once (threads will deep-copy it)
+    tprint('Loading config ...')
     co_base_cfg = load_config('data/multi_ev_config.yml')
-    v2g_base_cfg = load_config('data/multi_ev_v2g_config.yml')
+    if args.rl_episodes is not None:
+        co_base_cfg['rl_episodes'] = args.rl_episodes
 
     # Disable plotting and summarizing to avoid terminal spam and file contention in parallel runs
     co_base_cfg['visualise'] = False
     co_base_cfg['summarise'] = False
-    v2g_base_cfg['visualise'] = False
-    v2g_base_cfg['summarise'] = False
 
     months_to_run: List[int] = [args.month] if args.month else list(range(1, 13))
 
     tprint(f'Processing months: {months_to_run}')
     tprint(f'Output directory : {OUTPUT_DIR}')
     tprint(f'Max parallel threads: {min(MAX_WORKERS, len(months_to_run))}')
+    tprint(f"RL episodes      : {co_base_cfg.get('rl_episodes')}")
 
     t_start = time.time()
 
     if len(months_to_run) == 1:
         # Single month — run inline (simpler for debugging)
-        process_month(months_to_run[0], co_base_cfg, v2g_base_cfg)
+        process_month(months_to_run[0], co_base_cfg)
     else:
         # Multiple months — one thread per month
         with ThreadPoolExecutor(
@@ -405,19 +385,19 @@ def main():
             thread_name_prefix='month',
         ) as executor:
             futures = {
-                executor.submit(process_month, m, co_base_cfg, v2g_base_cfg): m
+                executor.submit(process_month, m, co_base_cfg): m
                 for m in months_to_run
             }
             for future in as_completed(futures):
                 m = futures[future]
                 try:
                     path = future.result()
-                    tprint(f'✓ Month {m:02d} complete → {path}')
+                    tprint(f'Month {m:02d} complete -> {path}')
                 except Exception as exc:
-                    tprint(f'✗ Month {m:02d} FAILED: {exc}')
+                    tprint(f'Month {m:02d} FAILED: {exc}')
 
     elapsed = time.time() - t_start
-    tprint(f'\nAll done in {elapsed:.1f}s  —  results in {OUTPUT_DIR}')
+    tprint(f'\nAll done in {elapsed:.1f}s  -  results in {OUTPUT_DIR}')
 
 
 if __name__ == '__main__':
