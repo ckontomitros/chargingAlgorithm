@@ -222,10 +222,12 @@ where:
 
 \subsection{Energy Balance}
 
-For each hour $t$, the energy equation must be satisfied:
+For each hour $t$, the energy equation must be satisfied, including energy exchanged with the building stationary battery (charge $E_{charge}^b(t)$ and discharge $E_{discharge}^b(t)$ as in \S~\ref{subsec:building_model}):
 
 \begin{equation}
-C_b(t) + \sum_{i=1}^{N_{EV}} E_{charge}^i(t) = P_{solar}(t) + E_{grid}^{total}(t) + \sum_{i=1}^{N_{EV}} E_{discharge}^i(t)
+C_b(t) + E_{charge}^b(t) + \sum_{i=1}^{N_{EV}} E_{charge}^i(t)
+= P_{solar}(t) + E_{grid}^{total}(t) + E_{discharge}^b(t) + \sum_{i=1}^{N_{EV}} E_{discharge}^i(t)
+\label{eq:site_energy_balance}
 \end{equation}
 
 \section{Level 0: Baseline (Uncontrolled Charging)}

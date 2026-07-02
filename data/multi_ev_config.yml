@@ -48,7 +48,7 @@ grid_capacity_per_hour: [
 # ============================================================================
 # EV Fleet Configuration
 # ============================================================================
-n_evs: 15                            # Number of electric vehicles
+n_evs: 5                             # Number of electric vehicles
 ev_battery_capacity: 100             # EV battery capacity in kWh (e.g., Tesla Model 3)
 ev_initial_soc_range: [0.2, 0.3]     # Random initial SoC range (20%-30%)
 ev_desired_soc_range: [0.7, 0.8]     # Random desired SoC range (70%-80%)

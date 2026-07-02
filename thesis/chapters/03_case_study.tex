@@ -174,14 +174,16 @@ This schedule matches most people who go to work and then leave to go home. The 
 
 \subsubsection{Realistic Wholesale Prices Used For Simulations}
 
-The simulations used wholesale day-ahead electricity prices published by the European Power Exchange (EPEX SPOT), the primary wholesale electricity exchange in Europe, on March 12th, 2018. Real wholesale prices were downloaded from two sources: (i) The transparency platform run by ENTSO-E [ENTSO-E TRANSPARENCY], which publishes wholesale energy prices across all EU markets; and (ii) The Fraunhofer ISE Energy Charts API [ENERGY CHARTS] that also provide energy charts for individual countries. As seen in Fig. \ref{fig:price_profile}, the day ahead price profile resembles those typically observed in most of Western Europe with both peaks and troughs. On this particular day, there was a large trough during the early morning hours (between 01:00 -- 06:00 AM) when prices were very low. This occurred because it was night-time and thus overall electricity demand is very low while many thermal units are still producing electricity, especially since they are usually less expensive than gas fired units. However, as people begin to go to work, start their cars, etc., the demand increases rapidly, leading to steep increase in price until noon when the price begins to decrease again. At 18:00 -- 19:00 PM (6 -- 7 PM) prices reach their highest levels, primarily due to the fact that renewable resources have decreased significantly during the afternoon and evening periods as clouds become thicker and residential electrical usage for cooking and lighting becomes greater. Table \ref{tab:prices} shows some statistics for the prices over each hourly time slot.
+The simulations used wholesale day-ahead electricity prices published by the European Power Exchange (EPEX SPOT), the primary wholesale electricity exchange in Europe, on March 12th, 2018. Real wholesale prices were downloaded from two sources: (i)~the transparency platform operated by ENTSO-E~\cite{entsoe_transparency}, which publishes wholesale energy prices across EU markets; and (ii)~the Fraunhofer ISE Energy-Charts API~\cite{energy_charts}, which provides historical spot prices by country.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
-\includegraphics[scale=0.85]{figures/electricity_price_profile.png}
-\caption{Hourly Electricity Purchase Price and Sell Back Price for France on March 12, 2018. Note: Data source: EPEX SPOT.}
+\includegraphics[width=0.92\textwidth]{figures/electricity_price_profile.png}
+\caption{Hourly wholesale purchase and sell-back electricity prices for France on 12 March 2018 (EPEX SPOT).}
 \label{fig:price_profile}
 \end{figure}
+
+Figure~\ref{fig:price_profile} shows the hourly profile; the day-ahead curve resembles those typically observed in most of Western Europe with both peaks and troughs. On this particular day, there was a large trough during the early morning hours (between 01:00 -- 06:00 AM) when prices were very low. This occurred because it was night-time and thus overall electricity demand is very low while many thermal units are still producing electricity, especially since they are usually less expensive than gas fired units. However, as people begin to go to work, start their cars, etc., the demand increases rapidly, leading to steep increase in price until noon when the price begins to decrease again. At 18:00 -- 19:00 PM (6 -- 7 PM) prices reach their highest levels, primarily due to the fact that renewable resources have decreased significantly during the afternoon and evening periods as clouds become thicker and residential electrical usage for cooking and lighting becomes greater.
 
 \begin{table}[htbp]
 \centering
@@ -206,7 +208,7 @@ Average Daily Price & --- & $\boxed{38.67}$ &$\boxed{0.039}$ &$\boxed{0.031}$ &$
 \end{tabular}
 \end{table}
 
-All raw data needed to recreate these tables can be found in appendix~\ref{app:hourly_data}.
+Table~\ref{tab:prices} summarises the same prices by time-of-day slot. All raw data needed to recreate these tables can be found in appendix~\ref{app:hourly_data}.
 
 \subsubsection{Price Characteristics}
 

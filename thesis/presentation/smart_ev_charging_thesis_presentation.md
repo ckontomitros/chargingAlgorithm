@@ -32,7 +32,7 @@ aspectratio: 169
 - Mobility pattern: arrivals 06:00–09:00, departures 16:00–20:00, target departure SoC 70–80%
 - Grid connection: 80 kW limit with day-ahead French wholesale prices
 
-![](figures/solar_production_profile.png){width=72%}
+![](../figures/solar_production_profile.png){width=72%}
 
 # Why Office Buildings
 
@@ -41,7 +41,7 @@ aspectratio: 169
 - Office hours overlap with solar production, improving self-consumption potential.
 - Charging is easier to coordinate centrally than in fully decentralized home charging.
 
-![](figures/building_consumption_profile.png){width=72%}
+![](../figures/building_consumption_profile.png){width=72%}
 
 # Methods Compared
 
@@ -54,6 +54,14 @@ aspectratio: 169
 - All methods were tested on the same 15-EV office-building scenario.
 - Full annual simulation: 365 days using real 2018 French wholesale prices and PVGIS solar data.
 
+# RL training convergence (representative day)
+
+- Charge-only Q-learning: 15,000 episodes per decision hour; March 12, 2018 (Paris) load, PV, and EPEX prices.
+- Moving average shows reward stabilising after ~8,000–10,000 episodes as the policy learns load shifting and solar alignment.
+- Operational results in the thesis use the converged policy; vs Simple on the same day, electricity cost drops **3.7%** (€31.63 → €30.45).
+
+![](../figures/rl_convergence.png){width=88%}
+
 # Annual Charge-Only Results (365 Days)
 
 | Method | Avg Daily Cost (€) | Annual Cost (€) | Annual Savings (€) | Savings (%) |
@@ -65,7 +73,16 @@ aspectratio: 169
 - Both methods satisfy the 80 kW grid limit with zero violations across all 365 days.
 - Zero SoC violations: all vehicles reach target departure charge every day.
 
-![](figures/simulation_results_multi.png){width=80%}
+![](../figures/annual_cost_three_methods.png){width=82%}
+
+# Annual savings vs Simple (365 days)
+
+- Charge-only RL saves **€120/year**; V2G RL saves **€53/year** vs the same Simple baseline.
+- V2G RL is more expensive than charge-only RL because wholesale arbitrage never activates.
+
+![](../figures/annual_savings_vs_simple.png){width=72%}
+
+![](../figures/simulation_results_multi.png){width=80%}
 
 # Annual Energy Performance
 
@@ -77,6 +94,8 @@ aspectratio: 169
 - RL uses 2.6% more solar energy daily (59.4 vs 57.9 kWh) by better aligning charging with PV production.
 - RL reduces grid energy consumption by 0.9% (671.6 vs 677.9 kWh/day).
 - Annual grid energy: Simple 247,420 kWh vs RL 245,150 kWh — a reduction of 2,270 kWh/year.
+
+![](../figures/grid_energy_charge_only.png){width=78%}
 
 # Solar Self-Consumption
 
@@ -90,7 +109,7 @@ aspectratio: 169
 - RL further improves self-consumption by 1.2 percentage points over Simple.
 - Daily solar production: 123.0 kWh, of which 61.0 kWh is used by the building.
 
-![](figures/solar_utilization_breakdown.png){width=78%}
+![](../figures/solar_utilization_breakdown.png){width=78%}
 
 # Annual V2G Results
 
@@ -104,7 +123,7 @@ aspectratio: 169
 - Zero V2G revenue, zero energy discharged across all 365 days.
 - The V2G capability provides no additional economic benefit at wholesale prices.
 
-![](figures/simulation_results_multi_v2g.png){width=80%}
+![](../figures/simulation_results_multi_v2g.png){width=80%}
 
 # V2G Sell-Price Sensitivity (365 Days, 2018)
 
@@ -118,6 +137,8 @@ aspectratio: 169
 - Result: **zero V2G discharge across all scenarios and all 365 days**.
 - Even at 120% sell-back, wholesale prices (€0.01–0.06/kWh) are too low for profitable arbitrage.
 - The RL agent correctly learns that round-trip losses exceed any potential gain.
+
+![](../figures/v2g_sell_price_invariance.png){width=86%}
 
 # Why V2G Fails at Wholesale Prices
 
@@ -142,7 +163,16 @@ aspectratio: 169
 - Level 3 (V2G RL) underperforms Level 2 by €67/year — V2G adds cost, not value.
 - Savings are modest but consistent across all 365 days of simulation.
 
-![](figures/cost_comparison_all_levels.png){width=78%}
+# Sensitivity to electricity price scenarios (charge-only)
+
+- Under a **flat** tariff, Simple and RL coincide; RL’s value grows when intraday **variability** increases.
+- RL widens its advantage under high ±100% variation vs the Simple baseline.
+
+![](../figures/price_sensitivity_comparison.png){width=88%}
+
+# Economic comparison (bar chart)
+
+![](../figures/cost_comparison_all_levels.png){width=78%}
 
 # State of Charge Statistics (Annual Average)
 

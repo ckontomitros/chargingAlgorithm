@@ -90,10 +90,14 @@ class MultiEVChargingSystem:
         return len(charged_evs) > 0, total_cost * -1
 
     def rl_charge_multi(self, hour, episodes=8000, learning_rate=0.15,
-                        discount_factor=0.99, epsilon=0.35):
+                        discount_factor=0.99, epsilon=0.35,
+                        convergence_history=None):
         """
         Multi-agent RL algorithm for multiple EVs with grid constraints (charge-only).
         Uses centralized learning with decentralized execution.
+
+        If ``convergence_history`` is a list, append the total episode reward
+        after each training episode (for convergence plots).
         """
         if not any(ev_cfg['arrival_time'] <= hour < ev_cfg['target_time']
                    for ev_cfg in self.evs):
@@ -114,6 +118,7 @@ class MultiEVChargingSystem:
 
         # Training phase
         for episode in range(episodes):
+            episode_reward = 0.0
             # Reset EVs to initial states
             ev_states = []
             for ev_config in self.evs:
@@ -171,11 +176,11 @@ class MultiEVChargingSystem:
                     action = actions[action_idx]
 
                     # Simulate action
-                    reward = 0
+                    reward = 0.0
                     hours_remaining = ev_state['target'] - h
                     soc_gap = ev_state['desired_soc'] - ev_state['soc']
 
-                    if action == 'charge' and remaining_capacity > 0:
+                    if action == 'charge' and (remaining_capacity > 0 or remaining_building_energy > 0):
                         should_charge = (ev_state['soc'] < ev_state['desired_soc']) or \
                                        (ev_state['soc'] < ev_state['desired_soc'] + 0.05 and current_price < 0.25)
 
@@ -185,17 +190,21 @@ class MultiEVChargingSystem:
                                 ev_state['max_rate'],
                                 max(0, energy_to_target),
                                 (1.0 - ev_state['soc']) * ev_state['battery_cap'],
-                                remaining_capacity
+                                remaining_building_energy + remaining_capacity
                             )
 
                             if max_energy > 0:
                                 energy_from_building_req = min(remaining_building_energy, max_energy)
-                                energy_from_grid_req = max_energy - energy_from_building_req
+                                energy_from_grid_req = min(
+                                    max_energy - energy_from_building_req,
+                                    remaining_capacity
+                                )
+                                total_requested = energy_from_building_req + energy_from_grid_req
 
                                 battery_eff = 0.95
-                                actual_charged = max_energy * battery_eff
+                                actual_charged = total_requested * battery_eff
 
-                                charge_ratio = actual_charged / max_energy if max_energy > 0 else 0
+                                charge_ratio = actual_charged / total_requested if total_requested > 0 else 0
                                 energy_from_building = energy_from_building_req * charge_ratio
                                 energy_from_grid = energy_from_grid_req * charge_ratio
 
@@ -255,6 +264,10 @@ class MultiEVChargingSystem:
                     Q[state][action_idx] += learning_rate * (
                             reward + discount_factor * best_next_q - Q[state][action_idx]
                     )
+                    episode_reward += reward
+
+            if convergence_history is not None:
+                convergence_history.append(episode_reward)
 
         # Execution phase: Make decisions for current hour
         total_benefit = 0
@@ -295,23 +308,27 @@ class MultiEVChargingSystem:
             if action == 'standby':
                 continue
 
-            elif action == 'charge' and remaining_capacity > 0:
+            elif action == 'charge' and (remaining_capacity > 0 or remaining_building_energy > 0):
                 energy_to_target = max(0, (desired_soc - ev.soc) * ev.battery_capacity)
                 max_energy = min(
                     ev.max_charge_rate,
                     energy_to_target,
                     (1.0 - ev.soc) * ev.battery_capacity,
-                    remaining_capacity
+                    remaining_building_energy + remaining_capacity
                 )
 
                 if max_energy > 0:
                     energy_from_building_requested = min(remaining_building_energy, max_energy)
-                    energy_from_grid_requested = max_energy - energy_from_building_requested
+                    energy_from_grid_requested = min(
+                        max_energy - energy_from_building_requested,
+                        remaining_capacity
+                    )
+                    total_requested = energy_from_building_requested + energy_from_grid_requested
 
-                    energy = ev.charge(max_energy)
+                    energy = ev.charge(total_requested)
 
-                    if max_energy > 0:
-                        charge_ratio = energy / max_energy
+                    if total_requested > 0:
+                        charge_ratio = energy / total_requested
                         energy_from_building = energy_from_building_requested * charge_ratio
                         energy_from_grid = energy_from_grid_requested * charge_ratio
                     else:

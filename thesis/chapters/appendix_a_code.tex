@@ -4,7 +4,7 @@
 \chapter{Code Implementation}
 \label{app:code}
 
-This appendix provides key code excerpts from the simulation implementation. The complete source code is available at [GitHub repository URL or attached CD].
+This appendix provides key code excerpts from the simulation implementation. The complete source code is submitted with the thesis as supplementary material.
 
 \section{Project Structure}
 \label{app:structure}
@@ -494,14 +494,7 @@ def benchmark_algorithms():
 \section{Code Availability}
 \label{app:availability}
 
-The complete source code for this thesis is available at:
-
-\begin{itemize}
-    \item \textbf{Repository:} [GitHub URL]
-    \item \textbf{License:} [Specify license, e.g., MIT, GPL]
-    \item \textbf{Documentation:} See \texttt{README.md} for detailed usage instructions
-    \item \textbf{Contact:} [Your email] for questions or collaboration
-\end{itemize}
+The complete implementation (Python modules, configuration files, data inputs, and analysis scripts) accompanies this thesis. Usage instructions are documented in \texttt{README\_THESIS.md} at the project root. The main simulation entry points are \texttt{scripts/run\_simulation.py} (charge-only) and the V2G variant under \texttt{src/simulation/}.
 
 \section{Reproducibility}
 \label{app:reproducibility}
@@ -509,11 +502,10 @@ The complete source code for this thesis is available at:
 To reproduce the results in this thesis:
 
 \begin{enumerate}
-    \item Clone the repository
     \item Install dependencies: \texttt{pip install -r requirements.txt}
-    \item Download data files (included in repository)
+    \item Ensure data files are present under \texttt{data/} (\texttt{office\_single\_building\_timeseries.csv}, \texttt{irradiance\_pvgis.csv}, and YAML configs)
     \item Run: \texttt{python scripts/run\_simulation.py}
-    \item Results will be generated in \texttt{scripts/} folder
+    \item Figures and extracted results are written under \texttt{scripts/} and \texttt{thesis/figures/}
 \end{enumerate}
 
 \textbf{Note:} RL results may vary slightly due to random initialization. Use \texttt{np.random.seed(42)} for deterministic results.
